@@ -1,0 +1,361 @@
+@import "tailwindcss";
+
+/* Class-based dark mode (toggle via .dark on html) */
+@custom-variant dark (&&:where(.dark, .dark *));
+
+/* ========== Premium app design system (mobile-first) ========== */
+:root {
+  /* Soft rounded corners – cards, buttons, inputs */
+  --app-radius-sm: 0.5rem;
+  --app-radius-md: 0.75rem;
+  --app-radius-lg: 1rem;
+  --app-radius-xl: 1.25rem;
+  --app-radius-2xl: 1.5rem;
+  --app-radius-card: 1rem;
+  --app-radius-button: 0.75rem;
+
+  /* Smooth shadows – subtle depth */
+  --app-shadow-soft: 0 2px 8px rgba(0, 0, 0, 0.06);
+  --app-shadow-card: 0 4px 16px rgba(0, 0, 0, 0.08);
+  --app-shadow-elevated: 0 8px 24px rgba(0, 0, 0, 0.1);
+  --app-shadow-nav: 0 -2px 16px rgba(0, 0, 0, 0.08);
+
+  /* Spacious layout */
+  --app-page-x: 1rem;
+  --app-page-y: 1.25rem;
+  --app-section-gap: 1.5rem;
+  --app-touch-min: 44px;
+
+  /* Large readable fonts */
+  --app-text-title: 1.25rem;
+  --app-text-body: 1rem;
+  --app-text-caption: 0.875rem;
+  --app-text-small: 0.8125rem;
+  --app-line-tight: 1.25;
+  --app-line-body: 1.5;
+
+  /* Elegant color contrast – surfaces */
+  --app-surface: #fafafa;
+  --app-surface-elevated: #ffffff;
+  --app-surface-overlay: rgba(255, 255, 255, 0.98);
+  --app-border: rgba(0, 0, 0, 0.08);
+  --app-text-primary: #111827;
+  --app-text-secondary: #6b7280;
+  --app-accent: #4f46e5;
+  --app-accent-hover: #4338ca;
+}
+
+.dark {
+  --app-shadow-soft: 0 2px 8px rgba(0, 0, 0, 0.2);
+  --app-shadow-card: 0 4px 16px rgba(0, 0, 0, 0.25);
+  --app-shadow-elevated: 0 8px 24px rgba(0, 0, 0, 0.3);
+  --app-shadow-nav: 0 -2px 16px rgba(0, 0, 0, 0.2);
+  --app-surface: #111827;
+  --app-surface-elevated: #1f2937;
+  --app-surface-overlay: rgba(17, 24, 39, 0.98);
+  --app-border: rgba(255, 255, 255, 0.1);
+  --app-text-primary: #f9fafb;
+  --app-text-secondary: #9ca3af;
+  --app-accent: #6366f1;
+  --app-accent-hover: #818cf8;
+}
+
+/* Utility classes using design tokens */
+.app-card {
+  border-radius: var(--app-radius-card);
+  box-shadow: var(--app-shadow-card);
+  background: var(--app-surface-elevated);
+}
+.app-card-soft {
+  border-radius: var(--app-radius-card);
+  box-shadow: var(--app-shadow-soft);
+  background: var(--app-surface-elevated);
+}
+.app-page-padding {
+  padding-left: max(var(--app-page-x), env(safe-area-inset-left));
+  padding-right: max(var(--app-page-x), env(safe-area-inset-right));
+}
+.app-touch-target {
+  min-height: var(--app-touch-min);
+  min-width: var(--app-touch-min);
+}
+
+html.dark {
+  color-scheme: dark;
+}
+
+/* Hide scrollbar for category slider */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+/* Category slider – smooth auto-scroll, works across browsers */
+/* CategoryBar-specific styles */
+.category-slider {
+  display: flex;
+  overflow-x: auto;
+  scroll-snap-type: none; /* Disable snap for auto-scroll */
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  overscroll-behavior-x: contain;
+  scroll-behavior: auto; /* Use auto for programmatic scrolling */
+}
+
+.category-slider::-webkit-scrollbar {
+  display: none;
+}
+
+.category-item {
+  flex: 0 0 auto;
+  scroll-snap-align: start;
+  min-width: 160px;
+}
+
+/* Ensure images load properly */
+.category-image-container {
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(135deg, #f3f4f6, #e5e7eb);
+}
+
+/* RGB Gradient Text for Company Name */
+@keyframes gradient-shift {
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+}
+
+.company-name-gradient {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 25%, #f093fb 50%, #4facfe 75%, #00f2fe 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  background-size: 200% 200%;
+  animation: gradient-shift 3s ease infinite;
+  filter: drop-shadow(0 2px 4px rgba(0,0,0,0.1));
+}
+
+.dark .company-name-gradient {
+  background: linear-gradient(135deg, #818cf8 0%, #a78bfa 25%, #f472b6 50%, #60a5fa 75%, #34d399 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  filter: drop-shadow(0 2px 4px rgba(255,255,255,0.1));
+}
+
+.dark .category-image-container {
+  background: linear-gradient(135deg, #374151, #4b5563);
+}
+
+.category-image {
+  transition: transform 0.3s ease;
+}
+
+.category-image:hover {
+  transform: scale(1.1);
+}
+
+/* Loading animation */
+@keyframes shimmer {
+  0% {
+    background-position: -1000px 0;
+  }
+  100% {
+    background-position: 1000px 0;
+  }
+}
+
+.loading-shimmer {
+  background: linear-gradient(
+    90deg,
+    #f0f0f0 25%,
+    #e0e0e0 50%,
+    #f0f0f0 75%
+  );
+  background-size: 1000px 100%;
+  animation: shimmer 2s infinite linear;
+}
+
+.dark .loading-shimmer {
+  background: linear-gradient(
+    90deg,
+    #374151 25%,
+    #4b5563 50%,
+    #374151 75%
+  );
+  background-size: 1000px 100%;
+}
+/* Notification bell blinking animation */
+@keyframes notification-blink {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.5;
+    transform: scale(1.1);
+  }
+}
+
+.notification-blink {
+  animation: notification-blink 1s ease-in-out infinite;
+}
+
+/* Product description rich text (Quill output) – user-facing */
+.product-description {
+  word-wrap: break-word;
+}
+.product-description h1,
+.product-description h2,
+.product-description h3 {
+  font-weight: 600;
+  margin-top: 1rem;
+  margin-bottom: 0.5rem;
+  color: inherit;
+}
+.product-description h1 { font-size: 1.5rem; }
+.product-description h2 { font-size: 1.25rem; }
+.product-description h3 { font-size: 1.125rem; }
+.product-description h1:first-child,
+.product-description h2:first-child,
+.product-description h3:first-child { margin-top: 0; }
+.product-description p {
+  margin-bottom: 0.75rem;
+}
+.product-description p:last-child { margin-bottom: 0; }
+.product-description ul,
+.product-description ol {
+  margin: 0.5rem 0 0.75rem 1.25rem;
+  padding-left: 0.5rem;
+}
+.product-description ul { list-style-type: disc; }
+.product-description ol { list-style-type: decimal; }
+.product-description li { margin-bottom: 0.25rem; }
+.product-description strong { font-weight: 600; }
+.product-description em { font-style: italic; }
+.product-description u { text-decoration: underline; }
+.product-description s { text-decoration: line-through; }
+.product-description a {
+  color: rgb(79 70 229);
+  text-decoration: underline;
+}
+.product-description a:hover {
+  color: rgb(67 56 202);
+}
+.dark .product-description a {
+  color: rgb(129 140 248);
+}
+.dark .product-description a:hover {
+  color: rgb(165 180 252);
+}
+.product-description .ql-indent-1 { padding-left: 3em; }
+.product-description .ql-indent-2 { padding-left: 6em; }
+.product-description blockquote {
+  border-left: 4px solid rgb(203 213 225);
+  margin: 0.75rem 0;
+  padding-left: 1rem;
+  color: rgb(100 116 139);
+}
+.dark .product-description blockquote {
+  border-left-color: rgb(71 85 105);
+  color: rgb(148 163 184);
+}
+
+/* Mobile-first: touch-friendly and readable */
+@media (max-width: 640px) {
+  .mobile-spacing {
+    padding-left: max(var(--app-page-x), env(safe-area-inset-left));
+    padding-right: max(var(--app-page-x), env(safe-area-inset-right));
+  }
+}
+
+/* Touch targets for interactive elements (buttons/links that are tappable) */
+@media (pointer: coarse) {
+  button:not(.no-touch-target),
+  a:not(.no-touch-target) {
+    min-height: var(--app-touch-min);
+    min-width: var(--app-touch-min);
+  }
+}
+
+body {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+html {
+  -webkit-overflow-scrolling: touch;
+  scroll-behavior: smooth;
+}
+
+/* Safe area insets for mobile (notched devices) */
+@supports (padding: max(0px)) {
+  .safe-area-inset-bottom {
+    padding-bottom: max(1rem, env(safe-area-inset-bottom));
+  }
+  .safe-area-inset-top {
+    padding-top: max(0.5rem, env(safe-area-inset-top));
+  }
+}
+
+/* Content area above bottom nav (mobile only): nav height + safe area */
+.app-content-bottom {
+  padding-bottom: 0;
+}
+@media (max-width: 767px) {
+  @supports (padding: max(0px)) {
+    .app-content-bottom {
+      padding-bottom: max(5rem, calc(5rem + env(safe-area-inset-bottom)));
+    }
+  }
+  @supports not (padding: max(0px)) {
+    .app-content-bottom {
+      padding-bottom: 5rem;
+    }
+  }
+}
+
+/* Space below footer on mobile so bottom nav doesn’t cover it */
+.mobile-footer-spacing {
+  margin-bottom: 0;
+}
+@media (max-width: 767px) {
+  .mobile-footer-spacing {
+    margin-bottom: max(5rem, calc(5rem + env(safe-area-inset-bottom)));
+  }
+}
+
+/* Floating contact/chat button: above bottom nav on mobile */
+@media (max-width: 767px) {
+  .floating-contact-above-nav {
+    bottom: max(6rem, calc(4.25rem + env(safe-area-inset-bottom)));
+  }
+}
+
+/* Girl cartoon – lafa lafi hand wave */
+@keyframes wave-hand {
+  0%, 100% { transform: rotate(-12deg); }
+  50% { transform: rotate(20deg); }
+}
+.animate-wave-hand {
+  animation: wave-hand 1.4s ease-in-out infinite;
+}
+
+/* Optimize image rendering for animation */
+.optimize-image-rendering {
+  image-rendering: auto;
+  -webkit-image-rendering: auto;
+  -moz-image-rendering: auto;
+  -ms-interpolation-mode: bicubic;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}

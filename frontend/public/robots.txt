@@ -1,0 +1,15 @@
+User-agent: *
+Allow: /
+Disallow: /admin
+Disallow: /dashboard
+Disallow: /checkout
+Disallow: /cart
+Disallow: /sign-in
+Disallow: /sign-up
+Disallow: /password-reset
+Disallow: /api/
+
+# Crawl delay to avoid server overload
+Crawl-delay: 1
+
+Sitemap: https://purchifyshop.com/sitemap.xml

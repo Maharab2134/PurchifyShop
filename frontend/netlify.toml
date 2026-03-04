@@ -1,0 +1,31 @@
+# Netlify Configuration for PurchifyShop
+# Handles SPA routing, canonical URLs, and SEO best practices
+
+# Force non-www (canonical domain)
+[[redirects]]
+  from = "https://www.purchifyshop.com/*"
+  to = "https://purchifyshop.com/:splat"
+  status = 301
+  force = true
+
+# Remove trailing slashes (except root)
+[[redirects]]
+  from = "/*//"
+  to = "/:splat"
+  status = 301
+  force = true
+
+# SPA: serve index.html for every path so refresh and direct links work (no 404)
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+
+# Headers for security and SEO
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Frame-Options = "SAMEORIGIN"
+    X-XSS-Protection = "1; mode=block"
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "strict-origin-when-cross-origin"
