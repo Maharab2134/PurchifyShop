@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams, useLocation } from "react-router-dom";
 import { useForm, Controller } from "react-hook-form";
 import { ArrowLeft } from "lucide-react";
 import Button from "@/components/atoms/Button";
@@ -76,7 +76,13 @@ export default function ProductForm() {
 
   const { id } = useParams<{ id?: string }>();
   const navigate = useNavigate();
+  const location = useLocation();
   const { showToast } = useToast();
+  const returnState = location.state as {
+    currentPage?: number;
+    pageSize?: number;
+    search?: string;
+  } | null;
   const [loading, setLoading] = useState(!!id);
   const [submitting, setSubmitting] = useState(false);
   const [categories, setCategories] = useState<Category[]>([]);
@@ -237,7 +243,7 @@ export default function ProductForm() {
             (e as { response?: { data?: { message?: string } } })?.response
               ?.data?.message ?? "Failed to load product";
           showToast(msg, "error");
-          navigate("/dashboard/products");
+          navigate("/dashboard/products", { state: returnState });
         } finally {
           setLoading(false);
         }
@@ -350,10 +356,10 @@ export default function ProductForm() {
         setVariants([buildDefaultVariant()]);
         setBrandSearch("");
         setSubcategories([]);
-        navigate("/dashboard/products");
+        navigate("/dashboard/products", { state: returnState });
         return;
       }
-      navigate("/dashboard/products");
+      navigate("/dashboard/products", { state: returnState });
     } catch (e: unknown) {
       const msg =
         (e as { response?: { data?: { message?: string } } })?.response?.data
@@ -387,7 +393,9 @@ export default function ProductForm() {
       <div className="mb-6">
         <Button
           type="button"
-          onClick={() => navigate("/dashboard/products")}
+          onClick={() =>
+            navigate("/dashboard/products", { state: returnState })
+          }
           className="inline-flex items-center gap-2 mb-4 text-gray-600 hover:text-gray-800"
         >
           <ArrowLeft size={18} />
@@ -567,7 +575,9 @@ export default function ProductForm() {
           <div className="flex justify-end gap-3">
             <Button
               type="button"
-              onClick={() => navigate("/dashboard/products")}
+              onClick={() =>
+                navigate("/dashboard/products", { state: returnState })
+              }
               className="px-6 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
             >
               Cancel

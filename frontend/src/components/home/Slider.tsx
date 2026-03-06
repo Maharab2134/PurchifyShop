@@ -1,12 +1,6 @@
 import { useEffect, useState, useCallback, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import {
-  ChevronLeft,
-  ChevronRight,
-  ShoppingBag,
-  Clock,
-  Tag,
-} from "lucide-react";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 import { type Slider } from "@/api/sliders";
 import { toImageUrl } from "@/utils/imageUrl";
 
@@ -16,16 +10,9 @@ interface SliderProps {
   showProgress?: boolean;
 }
 
-type EnhancedSlider = Slider & {
-  badge?: "sale" | "new" | "limited" | string;
-  badgeLabel?: string;
-  price?: number;
-  oldPrice?: number;
-};
-
 /**
  * Professional e-commerce slider component with touch support,
- * loading states, and rich product-focused features.
+ * loading states, and clickable slides.
  */
 export default function HomeSlider({
   sliders,
@@ -90,20 +77,8 @@ export default function HomeSlider({
 
   if (sliders.length === 0) return null;
 
-  const current = sliders[index] as EnhancedSlider;
+  const current = sliders[index];
   const ctaLink = current.buttonLink || current.link;
-  const ctaLabel = current.buttonTitle?.trim() || "Add to Cart";
-
-  // Format price if available
-  const formatPrice = (price?: number) => {
-    if (!price) return null;
-    return new Intl.NumberFormat("en-US", {
-      style: "currency",
-      currency: "USD",
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0,
-    }).format(price);
-  };
 
   return (
     <div className="relative w-full h-full group">
@@ -132,109 +107,34 @@ export default function HomeSlider({
             transition={{ duration: 0.7, ease: [0.4, 0, 0.2, 1] }}
             className="relative w-full"
           >
-            {/* Image Container */}
-            <div className="aspect-21/9 w-full overflow-hidden bg-gray-900">
-              <img
-                src={toImageUrl(current.image)}
-                alt={current.title || "Product showcase"}
-                className="w-full h-full object-cover object-center transform scale-100 hover:scale-105 transition-transform duration-7000"
-                onLoad={handleImageLoad}
-                loading="lazy"
-              />
-            </div>
-
-            {/* Gradient Overlay */}
-            <div className="absolute inset-0 bg-linear-to-r from-black/80 via-black/40 to-transparent">
-              <div className="w-full h-full flex items-center">
-                <div className="w-full max-w-3xl px-8 md:px-16 text-white">
-                  {/* Badge */}
-                  {current.badge && (
-                    <motion.span
-                      initial={{ opacity: 0, y: 20 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: 0.2 }}
-                      className="inline-flex items-center px-4 py-2 bg-linear-to-r from-blue-500 to-purple-500 rounded-full text-sm font-semibold mb-4 shadow-lg"
-                    >
-                      {current.badge === "sale" && (
-                        <Tag className="w-4 h-4 mr-2" />
-                      )}
-                      {current.badge === "new" && (
-                        <ShoppingBag className="w-4 h-4 mr-2" />
-                      )}
-                      {current.badge === "limited" && (
-                        <Clock className="w-4 h-4 mr-2" />
-                      )}
-                      {current.badgeLabel || "Special Offer"}
-                    </motion.span>
-                  )}
-
-                  {/* Title */}
-                  {current.title && (
-                    <motion.h2
-                      initial={{ opacity: 0, y: 20 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: 0.3 }}
-                      className="text-3xl sm:text-4xl md:text-6xl font-bold mb-4 leading-tight"
-                    >
-                      {current.title}
-                    </motion.h2>
-                  )}
-
-                  {/* Description */}
-                  {current.description && (
-                    <motion.p
-                      initial={{ opacity: 0, y: 20 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: 0.4 }}
-                      className="text-base sm:text-lg md:text-xl opacity-90 mb-6 max-w-2xl"
-                    >
-                      {current.description}
-                    </motion.p>
-                  )}
-
-                  {/* Price and CTA */}
-                  <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.5 }}
-                    className="flex items-center gap-6 flex-wrap"
-                  >
-                    {current.price && (
-                      <div className="flex items-baseline gap-3">
-                        <span className="text-3xl md:text-4xl font-bold text-blue-400">
-                          {formatPrice(current.price)}
-                        </span>
-                        {current.oldPrice && (
-                          <span className="text-lg md:text-xl text-gray-400 line-through">
-                            {formatPrice(current.oldPrice)}
-                          </span>
-                        )}
-                      </div>
-                    )}
-
-                    {ctaLink ? (
-                      <a
-                        href={ctaLink}
-                        className="group inline-flex items-center px-6 py-3 bg-white text-gray-900 rounded-full font-semibold hover:bg-blue-500 hover:text-white transition-all duration-300 transform hover:scale-105 shadow-xl"
-                      >
-                        {ctaLabel}
-                        <ChevronRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
-                      </a>
-                    ) : (
-                      <button
-                        onClick={() => {
-                          /* Add to cart logic */
-                        }}
-                        className="group inline-flex items-center px-6 py-3 bg-white text-gray-900 rounded-full font-semibold hover:bg-blue-500 hover:text-white transition-all duration-300 transform hover:scale-105 shadow-xl"
-                      >
-                        {ctaLabel}
-                        <ShoppingBag className="w-5 h-5 ml-2" />
-                      </button>
-                    )}
-                  </motion.div>
+            {/* Clickable Slide Link */}
+            {ctaLink ? (
+              <a
+                href={ctaLink}
+                className="block cursor-pointer hover:opacity-95 transition-opacity"
+              >
+                {/* Image Container */}
+                <div className="aspect-21/9 w-full overflow-hidden bg-gray-900">
+                  <img
+                    src={toImageUrl(current.image)}
+                    alt={current.title || "Product showcase"}
+                    className="w-full h-full object-cover object-center transform scale-100 hover:scale-105 transition-transform duration-7000"
+                    onLoad={handleImageLoad}
+                    loading="lazy"
+                  />
                 </div>
+              </a>
+            ) : (
+              <div className="aspect-21/9 w-full overflow-hidden bg-gray-900">
+                <img
+                  src={toImageUrl(current.image)}
+                  alt={current.title || "Product showcase"}
+                  className="w-full h-full object-cover object-center"
+                  onLoad={handleImageLoad}
+                  loading="lazy"
+                />
               </div>
-            </div>
+            )}
           </motion.div>
         </AnimatePresence>
 
@@ -260,28 +160,19 @@ export default function HomeSlider({
           </>
         )}
 
-        {/* Progress Indicators */}
+        {/* Progress Indicators (Desktop only) */}
         {showProgress && sliders.length > 1 && (
-          <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex gap-3 z-10">
+          <div className="absolute bottom-4 left-1/2 -translate-x-1/2 hidden md:flex items-center gap-2 z-10">
             {sliders.map((_, i) => (
               <button
                 key={i}
                 onClick={() => setIndex(i)}
-                className={`h-2 rounded-full transition-all duration-300 ${
-                  i === index
-                    ? "w-8 bg-white"
-                    : "w-2 bg-white/50 hover:bg-white/80"
+                className={`rounded-full transition-all duration-300 ${
+                  i === index ? "w-6 h-1.5 bg-white" : "w-2 h-2 bg-white/50"
                 }`}
                 aria-label={`Go to slide ${i + 1}`}
               />
             ))}
-          </div>
-        )}
-
-        {/* Slide Counter */}
-        {sliders.length > 1 && (
-          <div className="absolute top-6 right-6 px-3 py-1 bg-black/50 backdrop-blur-md rounded-full text-white text-sm z-10">
-            {index + 1} / {sliders.length}
           </div>
         )}
       </div>
