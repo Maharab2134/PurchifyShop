@@ -9,30 +9,40 @@ use App\Models\ProductVariant;
 use App\Models\User;
 use App\Models\Vendor;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 
 class AnalyticsController extends Controller
 {
     public function index(): JsonResponse
     {
+        $vendorId = $this->resolveVendorId();
+
+        $baseOrderQuery = Order::query();
+        if ($vendorId !== null) {
+            $baseOrderQuery->whereHas('orderItems.variant.product', fn ($p) => $p->where('vendor_id', $vendorId));
+        }
+
         // Calculate total revenue: sum of PAID orders only
         // Only orders with PAID payment status should count towards revenue
-        $ordersTotal = Order::whereHas('payment', function ($q) {
+        $ordersTotal = (clone $baseOrderQuery)->whereHas('payment', function ($q) {
             $q->where('status', 'PAID');
         })->sum('amount');
         
-        $refundedOrdersTotal = Order::whereHas('payment', function ($q) {
+        $refundedOrdersTotal = (clone $baseOrderQuery)->whereHas('payment', function ($q) {
             $q->where('status', 'REFUNDED');
         })->sum('amount');
         
-        $ordersCount = Order::count();
-        $refundedOrdersCount = Order::whereHas('payment', function ($q) {
+        $ordersCount = (clone $baseOrderQuery)->count();
+        $refundedOrdersCount = (clone $baseOrderQuery)->whereHas('payment', function ($q) {
             $q->where('status', 'REFUNDED');
         })->count();
-        $usersCount = User::count();
-        $productsCount = Product::count();
-        $vendorsCount = Vendor::count();
-        $recentOrders = Order::with('user')->orderByDesc('order_date')->limit(10)->get()->map(fn ($o) => [
+        $usersCount = $vendorId === null
+            ? User::count()
+            : User::whereIn('id', (clone $baseOrderQuery)->pluck('user_id')->filter()->unique()->values()->all())->count();
+        $productsCount = $vendorId === null ? Product::count() : Product::where('vendor_id', $vendorId)->count();
+        $vendorsCount = $vendorId === null ? Vendor::count() : 1;
+        $recentOrders = (clone $baseOrderQuery)->with('user')->orderByDesc('order_date')->limit(10)->get()->map(fn ($o) => [
             'id' => $o->id,
             'userId' => $o->user_id,
             'amount' => (float) $o->amount,
@@ -46,10 +56,11 @@ class AnalyticsController extends Controller
 
         // Sales per day: last 3 months, PAID orders only, grouped by date
         $salesPerDaySince = now()->subMonths(3);
-        $salesPerDay = Order::whereHas('payment', function ($q) {
+        $salesPerDayQuery = (clone $baseOrderQuery)->whereHas('payment', function ($q) {
             $q->where('status', 'PAID');
         })
-            ->where('order_date', '>=', $salesPerDaySince)
+            ->where('order_date', '>=', $salesPerDaySince);
+        $salesPerDay = $salesPerDayQuery
             ->select(DB::raw('DATE(order_date) as date'), DB::raw('SUM(amount) as sales'))
             ->groupBy(DB::raw('DATE(order_date)'))
             ->orderBy('date')
@@ -61,13 +72,17 @@ class AnalyticsController extends Controller
         // Most sold products: top 10 by quantity from order_items (PAID orders only)
         $mostSoldProducts = [];
         if (\Schema::hasTable('order_items')) {
-            $mostSoldProducts = DB::table('order_items')
+            $mostSoldProductsQuery = DB::table('order_items')
                 ->join('orders', 'order_items.order_id', '=', 'orders.id')
                 ->join('payments', 'orders.id', '=', 'payments.order_id')
                 ->join('product_variants', 'order_items.variant_id', '=', 'product_variants.id')
                 ->join('products', 'product_variants.product_id', '=', 'products.id')
                 ->where('payments.status', 'PAID')
-                ->select('products.id as product_id', 'products.name as product_name', DB::raw('SUM(order_items.quantity) as total_quantity'))
+                ->select('products.id as product_id', 'products.name as product_name', DB::raw('SUM(order_items.quantity) as total_quantity'));
+            if ($vendorId !== null) {
+                $mostSoldProductsQuery->where('products.vendor_id', $vendorId);
+            }
+            $mostSoldProducts = $mostSoldProductsQuery
                 ->groupBy('products.id', 'products.name')
                 ->orderByDesc('total_quantity')
                 ->limit(10)
@@ -82,7 +97,7 @@ class AnalyticsController extends Controller
         }
 
         // Popular customers: top 10 by order count (PAID orders)
-        $popularCustomersRows = Order::whereHas('payment', function ($q) {
+        $popularCustomersRows = (clone $baseOrderQuery)->whereHas('payment', function ($q) {
             $q->where('status', 'PAID');
         })
             ->select('user_id', DB::raw('COUNT(*) as order_count'), DB::raw('SUM(amount) as total_spent'))
@@ -106,9 +121,13 @@ class AnalyticsController extends Controller
         // Low stock variants: stock <= low_stock_threshold (for dashboard warning)
         $lowStockItems = [];
         if (\Schema::hasTable('product_variants')) {
-            $lowStockItems = ProductVariant::where('low_stock_threshold', '>', 0)
+            $lowStockItemsQuery = ProductVariant::where('low_stock_threshold', '>', 0)
                 ->whereColumn('stock', '<=', 'low_stock_threshold')
-                ->with('product:id,name,slug')
+                ->with('product:id,name,slug,vendor_id');
+            if ($vendorId !== null) {
+                $lowStockItemsQuery->whereHas('product', fn ($p) => $p->where('vendor_id', $vendorId));
+            }
+            $lowStockItems = $lowStockItemsQuery
                 ->orderBy('stock')
                 ->limit(50)
                 ->get()
@@ -199,5 +218,15 @@ class AnalyticsController extends Controller
         }
 
         return response()->json(['message' => 'Top pages cleared']);
+    }
+
+    private function resolveVendorId(): ?string
+    {
+        $user = Auth::user();
+        if (! $user) {
+            return null;
+        }
+
+        return strtoupper((string) $user->role) === 'VENDOR' ? ($user->vendor_id ?: null) : null;
     }
 }

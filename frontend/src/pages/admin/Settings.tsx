@@ -13,6 +13,7 @@ import {
   MessageSquare,
   Sparkles,
   Languages,
+  Target,
 } from "lucide-react";
 import Button from "@/components/atoms/Button";
 import { adminApi } from "@/api/admin";
@@ -89,6 +90,13 @@ type AnimationSettingsForm = {
   };
 };
 
+type PixelSettingsForm = {
+  isActive: boolean;
+  metaPixelId: string;
+  googleTagManagerId: string;
+  googleAnalyticsId: string;
+};
+
 type LanguageSettingsForm = {
   isActive: boolean;
   defaultLang: "en" | "bn";
@@ -107,6 +115,7 @@ type FormValues = {
   seoSettings: SeoSettingsForm;
   popupSettings: PopupSettingsForm;
   animationSettings: AnimationSettingsForm;
+  pixelSettings: PixelSettingsForm;
   languageSettings: LanguageSettingsForm;
   translations: TranslationsForm;
 };
@@ -184,6 +193,13 @@ const defaultAnimationSettings: AnimationSettingsForm = {
   },
 };
 
+const defaultPixelSettings: PixelSettingsForm = {
+  isActive: false,
+  metaPixelId: "",
+  googleTagManagerId: "",
+  googleAnalyticsId: "",
+};
+
 const defaultLanguageSettings: LanguageSettingsForm = {
   isActive: true,
   defaultLang: "en",
@@ -222,6 +238,7 @@ export default function AdminSettings() {
       seoSettings: defaultSeoSettings,
       popupSettings: defaultPopupSettings,
       animationSettings: defaultAnimationSettings,
+      pixelSettings: defaultPixelSettings,
       languageSettings: defaultLanguageSettings,
       translations: defaultTranslations,
     },
@@ -247,6 +264,9 @@ export default function AdminSettings() {
         const seo = d?.seoSettings ?? defaultSeoSettings;
         const popup = d?.popupSettings ?? defaultPopupSettings;
         const anim = d?.animationSettings ?? defaultAnimationSettings;
+        const pixel =
+          (d as { pixelSettings?: PixelSettingsForm })?.pixelSettings ??
+          defaultPixelSettings;
         const lang = d?.languageSettings ?? defaultLanguageSettings;
         const translations = (d?.translations ??
           defaultTranslations) as TranslationsForm;
@@ -313,6 +333,12 @@ export default function AdminSettings() {
               circleColor:
                 anim.pageTransitionAnimation?.circleColor ?? "#6366f1",
             },
+          },
+          pixelSettings: {
+            isActive: pixel.isActive ?? false,
+            metaPixelId: pixel.metaPixelId ?? "",
+            googleTagManagerId: pixel.googleTagManagerId ?? "",
+            googleAnalyticsId: pixel.googleAnalyticsId ?? "",
           },
           languageSettings: {
             isActive: lang.isActive ?? true,
@@ -452,6 +478,14 @@ export default function AdminSettings() {
         },
         popupSettings: data.popupSettings,
         animationSettings: data.animationSettings,
+        pixelSettings: {
+          isActive: !!data.pixelSettings?.isActive,
+          metaPixelId: data.pixelSettings?.metaPixelId?.trim() || "",
+          googleTagManagerId:
+            data.pixelSettings?.googleTagManagerId?.trim() || "",
+          googleAnalyticsId:
+            data.pixelSettings?.googleAnalyticsId?.trim() || "",
+        },
         languageSettings: data.languageSettings,
         translations: data.translations,
       });
@@ -480,7 +514,7 @@ export default function AdminSettings() {
   };
 
   const [activeTab, setActiveTab] = useState<
-    "general" | "seo" | "popup" | "animation" | "language"
+    "general" | "seo" | "popup" | "animation" | "pixel" | "language"
   >("general");
 
   const availableNamespaces = useMemo(() => {
@@ -592,6 +626,20 @@ export default function AdminSettings() {
             <div className="flex items-center gap-2">
               <Languages size={16} />
               <span>Language</span>
+            </div>
+          </button>
+          <button
+            type="button"
+            onClick={() => setActiveTab("pixel")}
+            className={`px-4 py-2 text-sm font-medium whitespace-nowrap border-b-2 transition-colors ${
+              activeTab === "pixel"
+                ? "border-indigo-500 text-indigo-600 dark:text-indigo-400"
+                : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-300"
+            }`}
+          >
+            <div className="flex items-center gap-2">
+              <Target size={16} />
+              <span>Pixel Setup</span>
             </div>
           </button>
         </nav>
@@ -1724,6 +1772,83 @@ export default function AdminSettings() {
                     </div>
                   </div>
                 </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Pixel Setup Tab */}
+        {activeTab === "pixel" && (
+          <div className="rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 overflow-hidden shadow-sm">
+            <div className="border-b border-gray-200 dark:border-gray-700 px-4 py-3 bg-linear-to-r from-cyan-50 to-sky-50 dark:from-cyan-900/20 dark:to-sky-900/20">
+              <div className="flex items-center gap-2">
+                <Target
+                  size={18}
+                  className="text-cyan-600 dark:text-cyan-400"
+                />
+                <h2 className="font-semibold text-gray-900 dark:text-gray-100">
+                  Pixel Setup
+                </h2>
+              </div>
+            </div>
+
+            <div className="p-4 sm:p-6 space-y-5">
+              <p className="text-sm text-gray-600 dark:text-gray-400">
+                Configure tracking IDs for Meta Pixel, Google Tag Manager, and
+                Google Analytics. IDs are loaded on storefront when active.
+              </p>
+
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="checkbox"
+                  {...form.register("pixelSettings.isActive")}
+                  className="rounded border-gray-300 dark:border-gray-600 text-indigo-600 focus:ring-indigo-500"
+                />
+                <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                  Enable tracking scripts
+                </span>
+              </label>
+
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                    Meta Pixel ID
+                  </label>
+                  <input
+                    {...form.register("pixelSettings.metaPixelId")}
+                    placeholder="e.g. 123456789012345"
+                    className="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 px-3 py-2 text-gray-900 dark:text-gray-100"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                    Google Tag Manager ID
+                  </label>
+                  <input
+                    {...form.register("pixelSettings.googleTagManagerId")}
+                    placeholder="e.g. GTM-XXXXXXX"
+                    className="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 px-3 py-2 text-gray-900 dark:text-gray-100"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                    Google Analytics ID
+                  </label>
+                  <input
+                    {...form.register("pixelSettings.googleAnalyticsId")}
+                    placeholder="e.g. G-XXXXXXXXXX"
+                    className="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 px-3 py-2 text-gray-900 dark:text-gray-100"
+                  />
+                </div>
+              </div>
+
+              <div className="rounded-lg border border-amber-200 dark:border-amber-800 bg-amber-50 dark:bg-amber-900/20 px-3 py-2">
+                <p className="text-xs text-amber-700 dark:text-amber-300">
+                  Tip: Usually GTM OR GA directly use করা হয়। দুটো একসাথে দিলে
+                  duplicate events হতে পারে.
+                </p>
               </div>
             </div>
           </div>

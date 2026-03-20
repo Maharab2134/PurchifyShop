@@ -94,10 +94,20 @@ Route::prefix('v1')->group(function () {
         Route::post('/chat/{id}/messages', [\App\Http\Controllers\Api\V1\ChatController::class, 'sendMessage'])->name('api.chat.send');
     });
 
-    // Admin (auth + role)
-    Route::middleware(['auth:sanctum', 'admin'])->prefix('admin')->name('api.admin.')->group(function () {
+    // Shared admin panel data for ADMIN/SUPERADMIN/VENDOR (vendor is vendor-scoped in controllers)
+    Route::middleware(['auth:sanctum', 'admin_or_vendor'])->prefix('admin')->name('api.admin.')->group(function () {
         Route::get('products', [\App\Http\Controllers\Api\V1\Admin\ProductController::class, 'index'])->name('products.index');
         Route::get('products/{id}', [\App\Http\Controllers\Api\V1\Admin\ProductController::class, 'show'])->name('products.show');
+        Route::get('analytics', [\App\Http\Controllers\Api\V1\Admin\AnalyticsController::class, 'index'])->name('analytics.index');
+        Route::get('orders', [\App\Http\Controllers\Api\V1\Admin\OrderController::class, 'index'])->name('orders.index');
+        Route::get('orders/notifications', [\App\Http\Controllers\Api\V1\Admin\OrderController::class, 'notifications'])->name('orders.notifications');
+        Route::post('orders/notifications/mark-read', [\App\Http\Controllers\Api\V1\Admin\OrderController::class, 'markNotificationsAsRead'])->name('orders.notifications.mark-read');
+        Route::get('orders/{id}', [\App\Http\Controllers\Api\V1\Admin\OrderController::class, 'show'])->name('orders.show');
+        Route::get('transactions', [\App\Http\Controllers\Api\V1\Admin\TransactionController::class, 'index'])->name('transactions.index');
+    });
+
+    // Admin-only (auth + role)
+    Route::middleware(['auth:sanctum', 'admin'])->prefix('admin')->name('api.admin.')->group(function () {
         Route::post('products', [\App\Http\Controllers\Api\V1\Admin\ProductController::class, 'store'])->name('products.store');
         Route::put('products/{id}', [\App\Http\Controllers\Api\V1\Admin\ProductController::class, 'update'])->name('products.update');
         Route::delete('products/{id}', [\App\Http\Controllers\Api\V1\Admin\ProductController::class, 'destroy'])->name('products.destroy');
@@ -149,15 +159,10 @@ Route::prefix('v1')->group(function () {
         Route::get('logs', [\App\Http\Controllers\Api\V1\Admin\LogController::class, 'index'])->name('logs.index');
         Route::get('recent-activities', [\App\Http\Controllers\Api\V1\Admin\ActivityController::class, 'index'])->name('activities.recent');
         Route::post('recent-activities/clear', [\App\Http\Controllers\Api\V1\Admin\ActivityController::class, 'clear'])->name('activities.recent.clear');
-        Route::get('analytics', [\App\Http\Controllers\Api\V1\Admin\AnalyticsController::class, 'index'])->name('analytics.index');
         Route::post('analytics/top-pages/clear', [\App\Http\Controllers\Api\V1\Admin\AnalyticsController::class, 'clearTopPages'])->name('analytics.top-pages.clear');
         Route::get('recent-visitors', [\App\Http\Controllers\Api\V1\Admin\VisitorController::class, 'index'])->name('visitors.recent');
         Route::post('recent-visitors/clear', [\App\Http\Controllers\Api\V1\Admin\VisitorController::class, 'clear'])->name('visitors.recent.clear');
-        Route::get('orders', [\App\Http\Controllers\Api\V1\Admin\OrderController::class, 'index'])->name('orders.index');
         Route::post('orders/clear', [\App\Http\Controllers\Api\V1\Admin\OrderController::class, 'clear'])->name('orders.clear');
-        Route::get('orders/notifications', [\App\Http\Controllers\Api\V1\Admin\OrderController::class, 'notifications'])->name('orders.notifications');
-        Route::post('orders/notifications/mark-read', [\App\Http\Controllers\Api\V1\Admin\OrderController::class, 'markNotificationsAsRead'])->name('orders.notifications.mark-read');
-        Route::get('orders/{id}', [\App\Http\Controllers\Api\V1\Admin\OrderController::class, 'show'])->name('orders.show');
         Route::put('orders/{id}/parcel-weight', [\App\Http\Controllers\Api\V1\Admin\OrderController::class, 'updateParcelWeight'])->name('orders.parcel-weight');
         Route::get('orders/{id}/vendor-whatsapp', [\App\Http\Controllers\Api\V1\Admin\OrderController::class, 'vendorWhatsApp'])->name('orders.vendor-whatsapp');
         Route::post('orders/{id}/steadfast-create', [\App\Http\Controllers\Api\V1\Admin\OrderController::class, 'createSteadfastParcel'])->name('orders.steadfast-create');
@@ -170,10 +175,10 @@ Route::prefix('v1')->group(function () {
         Route::put('orders/{id}', [\App\Http\Controllers\Api\V1\Admin\OrderController::class, 'update'])->name('orders.update');
         Route::delete('orders/{id}', [\App\Http\Controllers\Api\V1\Admin\OrderController::class, 'destroy'])->name('orders.destroy');
         Route::put('payments/{id}', [\App\Http\Controllers\Api\V1\Admin\PaymentController::class, 'update'])->name('payments.update');
-        Route::get('transactions', [\App\Http\Controllers\Api\V1\Admin\TransactionController::class, 'index'])->name('transactions.index');
         Route::delete('transactions/{id}', [\App\Http\Controllers\Api\V1\Admin\TransactionController::class, 'destroy'])->name('transactions.destroy');
         Route::post('uploads', [\App\Http\Controllers\Api\V1\Admin\UploadController::class, 'store'])->name('uploads.store');
         Route::options('uploads', function () { return response('', 204); });
+        Route::get('media', [\App\Http\Controllers\Api\V1\Admin\MediaController::class, 'index'])->name('media.index');
         Route::post('images/delete', [\App\Http\Controllers\Api\V1\Admin\ImageController::class, 'destroy'])->name('images.delete');
         Route::get('payment-methods', [\App\Http\Controllers\Api\V1\Admin\PaymentMethodController::class, 'index'])->name('payment-methods.index');
         Route::get('payment-methods/{id}', [\App\Http\Controllers\Api\V1\Admin\PaymentMethodController::class, 'show'])->name('payment-methods.show');
@@ -200,6 +205,8 @@ Route::prefix('v1')->group(function () {
         Route::put('courier/pathao/settings', [\App\Http\Controllers\Api\V1\Admin\CourierPathaoSettingsController::class, 'update'])->name('courier.pathao.settings.update');
         Route::get('vendors', [\App\Http\Controllers\Api\V1\Admin\VendorController::class, 'index'])->name('vendors.index');
         Route::post('vendors', [\App\Http\Controllers\Api\V1\Admin\VendorController::class, 'store'])->name('vendors.store');
+        Route::get('vendors/system-status', [\App\Http\Controllers\Api\V1\Admin\VendorController::class, 'systemStatus'])->name('vendors.system-status');
+        Route::put('vendors/system-status', [\App\Http\Controllers\Api\V1\Admin\VendorController::class, 'updateSystemStatus'])->name('vendors.system-status.update');
         Route::get('vendors/{id}', [\App\Http\Controllers\Api\V1\Admin\VendorController::class, 'show'])->name('vendors.show');
         Route::put('vendors/{id}', [\App\Http\Controllers\Api\V1\Admin\VendorController::class, 'update'])->name('vendors.update');
         Route::post('vendors/{id}/approve', [\App\Http\Controllers\Api\V1\Admin\VendorController::class, 'approve'])->name('vendors.approve');

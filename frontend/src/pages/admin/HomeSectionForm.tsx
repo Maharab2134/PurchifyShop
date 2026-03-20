@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useForm } from "react-hook-form";
-import { ArrowLeft, X } from "lucide-react";
+import { ArrowLeft, Plus, Trash2, X } from "lucide-react";
 import Button from "@/components/atoms/Button";
 import IconSuggestInput from "@/components/admin/IconSuggestInput";
 import { adminApi } from "@/api/admin";
@@ -24,7 +24,7 @@ type FormValues = {
   title?: string;
   description?: string;
   subtitle?: string;
-  themeData?: Record<string, any>;
+  themeData?: Record<string, unknown>;
   backgroundColor?: string;
   textColor?: string;
   ctaText?: string;
@@ -34,6 +34,12 @@ type FormValues = {
   countdownEnd?: string;
   icon?: string;
   image?: string;
+};
+
+type FeatureGridItem = {
+  icon: string;
+  title: string;
+  description: string;
 };
 
 export default function HomeSectionForm() {
@@ -138,7 +144,7 @@ export default function HomeSectionForm() {
           ) {
             // Images are already in themeData, no need to do anything
           }
-        } catch (e) {
+        } catch {
           showToast("Failed to load section", "error");
           navigate("/dashboard/home-sections");
         } finally {
@@ -181,6 +187,68 @@ export default function HomeSectionForm() {
     });
   };
 
+  const getFeatureItems = (): FeatureGridItem[] => {
+    const current = form.watch("themeData")?.items;
+    if (!Array.isArray(current)) return [];
+
+    return current.map((item) => {
+      const obj =
+        typeof item === "object" && item !== null
+          ? (item as Record<string, unknown>)
+          : {};
+
+      return {
+        icon: typeof obj.icon === "string" ? obj.icon : "",
+        title: typeof obj.title === "string" ? obj.title : "",
+        description: typeof obj.description === "string" ? obj.description : "",
+      };
+    });
+  };
+
+  const setFeatureItems = (items: FeatureGridItem[]) => {
+    const themeData = form.watch("themeData") || {};
+    form.setValue(
+      "themeData",
+      {
+        ...themeData,
+        items,
+      },
+      { shouldDirty: true },
+    );
+  };
+
+  const addFeatureItem = () => {
+    const items = getFeatureItems();
+    setFeatureItems([
+      ...items,
+      {
+        icon: "Shield",
+        title: "",
+        description: "",
+      },
+    ]);
+  };
+
+  const updateFeatureItem = (
+    index: number,
+    field: keyof FeatureGridItem,
+    value: string,
+  ) => {
+    const items = getFeatureItems();
+    if (!items[index]) return;
+    const next = [...items];
+    next[index] = {
+      ...next[index],
+      [field]: value,
+    };
+    setFeatureItems(next);
+  };
+
+  const removeFeatureItem = (index: number) => {
+    const items = getFeatureItems();
+    setFeatureItems(items.filter((_, i) => i !== index));
+  };
+
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -218,6 +286,11 @@ export default function HomeSectionForm() {
     }
   };
 
+  const toNullableText = (value?: string): string | null => {
+    const trimmed = value?.trim();
+    return trimmed ? trimmed : null;
+  };
+
   const onSubmit = form.handleSubmit(async (data) => {
     if (!data.name?.trim()) {
       showToast("Name is required", "error");
@@ -230,19 +303,19 @@ export default function HomeSectionForm() {
           name: data.name.trim(),
           slug: data.slug?.trim() || undefined,
           themeType: data.themeType || "PRODUCT_GRID",
-          title: data.title?.trim() || undefined,
-          description: data.description?.trim() || undefined,
-          subtitle: data.subtitle?.trim() ? data.subtitle.trim() : undefined,
+          title: toNullableText(data.title),
+          description: toNullableText(data.description),
+          subtitle: toNullableText(data.subtitle),
           themeData: data.themeData || undefined,
-          backgroundColor: data.backgroundColor?.trim() || undefined,
-          textColor: data.textColor?.trim() || undefined,
-          ctaText: data.ctaText?.trim() || undefined,
-          ctaLink: data.ctaLink?.trim() || undefined,
+          backgroundColor: toNullableText(data.backgroundColor),
+          textColor: toNullableText(data.textColor),
+          ctaText: toNullableText(data.ctaText),
+          ctaLink: toNullableText(data.ctaLink),
           isVisible: data.isVisible ?? true,
           sortOrder: data.sortOrder ?? 0,
           countdownEnd: data.countdownEnd?.trim() || null,
-          icon: data.icon?.trim() || undefined,
-          image: data.image?.trim() || undefined,
+          icon: toNullableText(data.icon),
+          image: toNullableText(data.image),
         });
 
         // Update products if any selected
@@ -379,6 +452,9 @@ export default function HomeSectionForm() {
                 </option>
                 <option value="IMAGE_BANNER">
                   Image Banner (Only Images, No Products)
+                </option>
+                <option value="FEATURES_GRID">
+                  Features Grid (Icon + Text Cards)
                 </option>
               </select>
             </div>
@@ -547,6 +623,105 @@ export default function HomeSectionForm() {
               </p>
             </div>
 
+            {form.watch("themeType") === "FEATURES_GRID" && (
+              <div className="rounded-lg border border-gray-200 dark:border-gray-700 p-4 bg-gray-50 dark:bg-gray-800/50 space-y-3">
+                <div className="flex items-center justify-between gap-3">
+                  <div>
+                    <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                      Feature Cards
+                    </h3>
+                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                      Add icon, title and short description for each card.
+                    </p>
+                  </div>
+                  <Button
+                    type="button"
+                    onClick={addFeatureItem}
+                    className="inline-flex items-center gap-1.5 rounded-lg border border-indigo-200 dark:border-indigo-800 px-2.5 py-1.5 text-xs font-medium text-indigo-700 dark:text-indigo-300 hover:bg-indigo-50 dark:hover:bg-indigo-900/30"
+                  >
+                    <Plus className="w-3.5 h-3.5" />
+                    Add Card
+                  </Button>
+                </div>
+
+                {!getFeatureItems().length && (
+                  <p className="text-xs text-amber-700 dark:text-amber-300 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-md px-3 py-2">
+                    No cards added yet. Add at least one card to show this
+                    section.
+                  </p>
+                )}
+
+                <div className="space-y-3">
+                  {getFeatureItems().map((item, index) => (
+                    <div
+                      key={`feature-item-${index}`}
+                      className="rounded-lg border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-800 p-3 space-y-3"
+                    >
+                      <div className="flex items-center justify-between">
+                        <p className="text-xs font-medium text-gray-600 dark:text-gray-400">
+                          Card #{index + 1}
+                        </p>
+                        <button
+                          type="button"
+                          onClick={() => removeFeatureItem(index)}
+                          className="inline-flex items-center gap-1 text-xs text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                          Remove
+                        </button>
+                      </div>
+
+                      <div>
+                        <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
+                          Icon
+                        </label>
+                        <IconSuggestInput
+                          value={item.icon}
+                          onChange={(value) =>
+                            updateFeatureItem(index, "icon", value)
+                          }
+                          placeholder="e.g. Truck, ShieldCheck, Headset"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
+                          Title
+                        </label>
+                        <input
+                          value={item.title}
+                          onChange={(e) =>
+                            updateFeatureItem(index, "title", e.target.value)
+                          }
+                          className="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 px-3 py-2 text-sm text-gray-900 dark:text-gray-100"
+                          placeholder="e.g. Fast Delivery"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
+                          Description
+                        </label>
+                        <textarea
+                          rows={2}
+                          value={item.description}
+                          onChange={(e) =>
+                            updateFeatureItem(
+                              index,
+                              "description",
+                              e.target.value,
+                            )
+                          }
+                          className="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 px-3 py-2 text-sm text-gray-900 dark:text-gray-100"
+                          placeholder="e.g. Swift shipping within 1-3 days"
+                        />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
             <div className="flex items-center gap-2">
               <input
                 type="checkbox"
@@ -688,7 +863,11 @@ export default function HomeSectionForm() {
                           folder: "utility",
                         });
                         const paths =
-                          res.data.data?.map((item: any) => item.path) || [];
+                          res.data.data
+                            ?.map((item) =>
+                              typeof item?.path === "string" ? item.path : "",
+                            )
+                            .filter((path): path is string => !!path) || [];
                         const currentThemeData = form.watch("themeData") || {};
                         const currentImages = currentThemeData.images || [];
                         form.setValue("themeData", {
@@ -712,41 +891,42 @@ export default function HomeSectionForm() {
 
           {/* Right section: Products at top, then help — whole column sticky so nothing overlaps when scrolling */}
           <div className="lg:col-span-1 lg:sticky lg:top-4 lg:self-start space-y-4">
-            {form.watch("themeType") !== "IMAGE_BANNER" && (
-              <div className="rounded-lg border border-gray-200 dark:border-gray-700 p-4 bg-gray-50 dark:bg-gray-700/30">
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  Products ({selectedIds.size} selected)
-                </label>
-                <div className="max-h-64 overflow-y-auto rounded-lg border border-gray-200 dark:border-gray-700 divide-y divide-gray-200 dark:divide-gray-700 bg-white dark:bg-gray-800">
-                  {allProducts.map((p) => (
-                    <label
-                      key={p.id}
-                      className="flex items-center gap-3 px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-700/30 cursor-pointer"
-                    >
-                      <input
-                        type="checkbox"
-                        checked={selectedIds.has(p.id)}
-                        onChange={() => toggleProduct(p.id)}
-                        className="rounded border-gray-300 dark:border-gray-600 text-indigo-600"
-                      />
-                      <span className="font-medium text-gray-900 dark:text-gray-100 truncate">
-                        {p.name}
-                      </span>
-                      <span className="text-xs text-gray-500 dark:text-gray-400 truncate">
-                        {p.slug}
-                      </span>
-                    </label>
-                  ))}
+            {form.watch("themeType") !== "IMAGE_BANNER" &&
+              form.watch("themeType") !== "FEATURES_GRID" && (
+                <div className="rounded-lg border border-gray-200 dark:border-gray-700 p-4 bg-gray-50 dark:bg-gray-700/30">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    Products ({selectedIds.size} selected)
+                  </label>
+                  <div className="max-h-64 overflow-y-auto rounded-lg border border-gray-200 dark:border-gray-700 divide-y divide-gray-200 dark:divide-gray-700 bg-white dark:bg-gray-800">
+                    {allProducts.map((p) => (
+                      <label
+                        key={p.id}
+                        className="flex items-center gap-3 px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-700/30 cursor-pointer"
+                      >
+                        <input
+                          type="checkbox"
+                          checked={selectedIds.has(p.id)}
+                          onChange={() => toggleProduct(p.id)}
+                          className="rounded border-gray-300 dark:border-gray-600 text-indigo-600"
+                        />
+                        <span className="font-medium text-gray-900 dark:text-gray-100 truncate">
+                          {p.name}
+                        </span>
+                        <span className="text-xs text-gray-500 dark:text-gray-400 truncate">
+                          {p.slug}
+                        </span>
+                      </label>
+                    ))}
+                  </div>
+                  <p className="mt-2 text-xs text-gray-500 dark:text-gray-400">
+                    Select products to show in this section.
+                    {form.watch("themeType") === "SPLIT_LAYOUT" &&
+                      " For Split Layout, product side depends on the layout you chose above."}
+                    {form.watch("themeType") === "COUNTDOWN_GRID" &&
+                      " Countdown Grid shows up to 10 products under the banner."}
+                  </p>
                 </div>
-                <p className="mt-2 text-xs text-gray-500 dark:text-gray-400">
-                  Select products to show in this section.
-                  {form.watch("themeType") === "SPLIT_LAYOUT" &&
-                    " For Split Layout, product side depends on the layout you chose above."}
-                  {form.watch("themeType") === "COUNTDOWN_GRID" &&
-                    " Countdown Grid shows up to 10 products under the banner."}
-                </p>
-              </div>
-            )}
+              )}
             {form.watch("themeType") === "IMAGE_BANNER" && (
               <div className="p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
                 <p className="text-sm text-blue-800 dark:text-blue-300">
@@ -794,6 +974,10 @@ export default function HomeSectionForm() {
               <p>
                 <strong>Image Banner</strong> — Image slider only; no products.
                 Use Section Image and optional extra images.
+              </p>
+              <p>
+                <strong>Features Grid</strong> — Icon + title + description
+                cards. Manage cards from theme data.
               </p>
             </div>
           </div>

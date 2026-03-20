@@ -24,6 +24,7 @@ class User extends Authenticatable
         'email',
         'password',
         'phone',
+        'vendor_id',
         'role',
         'role_id',
         'is_active',
@@ -86,5 +87,10 @@ class User extends Authenticatable
     public function roleModel(): BelongsTo
     {
         return $this->belongsTo(Role::class, 'role_id');
+    }
+
+    public function vendor(): BelongsTo
+    {
+        return $this->belongsTo(Vendor::class, 'vendor_id');
     }
 }

@@ -1,25 +1,25 @@
-import { useEffect, useState } from 'react'
-import { Link } from 'react-router-dom'
-import { publicBrandsApi } from '@/api/brandsPublic'
-import type { Brand } from '@/api/brands'
-import { toImageUrl } from '@/utils/imageUrl'
+import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
+import { publicBrandsApi } from "@/api/brandsPublic";
+import type { Brand } from "@/api/brands";
+import { toImageUrl } from "@/utils/imageUrl";
 
 export default function TopBrands() {
-  const [brands, setBrands] = useState<Brand[]>([])
-  const [loading, setLoading] = useState(true)
-  const previewCount = 12
+  const [brands, setBrands] = useState<Brand[]>([]);
+  const [loading, setLoading] = useState(true);
+  const previewCount = 12;
 
   useEffect(() => {
     publicBrandsApi
       .list({ limit: previewCount })
       .then((res) => {
-        setBrands(res.data.data?.brands ?? [])
+        setBrands(res.data.data?.brands ?? []);
       })
       .catch(() => setBrands([]))
-      .finally(() => setLoading(false))
-  }, [])
+      .finally(() => setLoading(false));
+  }, []);
 
-  if (!loading && brands.length === 0) return null
+  if (!loading && brands.length === 0) return null;
 
   return (
     <section className="w-full bg-white dark:bg-gray-900 py-8 sm:py-10">
@@ -31,7 +31,7 @@ export default function TopBrands() {
             </h2>
             <Link
               to="/brands"
-              className="text-indigo-600 dark:text-indigo-400 hover:underline font-medium text-sm sm:text-base"
+              className="text-gray-700 dark:text-gray-300 hover:underline font-medium text-sm sm:text-base"
             >
               View More &gt;
             </Link>
@@ -40,7 +40,10 @@ export default function TopBrands() {
           {loading ? (
             <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-6 gap-4">
               {Array.from({ length: previewCount }).map((_, i) => (
-                <div key={i} className="h-24 sm:h-28 bg-gray-100 dark:bg-gray-800 rounded-lg animate-pulse" />
+                <div
+                  key={i}
+                  className="h-24 sm:h-28 bg-gray-100 dark:bg-gray-800 rounded-lg animate-pulse"
+                />
               ))}
             </div>
           ) : (
@@ -60,7 +63,7 @@ export default function TopBrands() {
                     />
                   ) : (
                     <div className="h-10 w-10 rounded-full bg-gray-100 dark:bg-gray-700 flex items-center justify-center text-sm font-semibold text-gray-600 dark:text-gray-200">
-                      {brand.name?.charAt(0) || '?'}
+                      {brand.name?.charAt(0) || "?"}
                     </div>
                   )}
                   <span className="text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-200 text-center">
@@ -73,5 +76,5 @@ export default function TopBrands() {
         </div>
       </div>
     </section>
-  )
+  );
 }

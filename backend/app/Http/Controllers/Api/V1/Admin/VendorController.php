@@ -4,10 +4,14 @@ namespace App\Http\Controllers\Api\V1\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\EmailTemplate;
+use App\Models\Setting;
+use App\Models\User;
 use App\Models\Vendor;
 use App\Services\EmailService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
 
 class VendorController extends Controller
 {
@@ -59,10 +63,25 @@ class VendorController extends Controller
     public function approve(string $id): JsonResponse
     {
         $v = Vendor::findOrFail($id);
-        if ($v->status === 'approved') {
-            return response()->json(['message' => 'Vendor is already approved'], 422);
+
+        if (! $v->email || trim((string) $v->email) === '') {
+            return response()->json(['message' => 'Vendor email is required before approval.'], 422);
         }
-        $v->update(['status' => 'approved']);
+        if (! $v->whatsapp_number || trim((string) $v->whatsapp_number) === '') {
+            return response()->json(['message' => 'Vendor phone/WhatsApp number is required before approval.'], 422);
+        }
+
+        $wasAlreadyApproved = $v->status === 'approved';
+
+        DB::transaction(function () use ($v, $wasAlreadyApproved): void {
+            if (! $wasAlreadyApproved) {
+                $v->update(['status' => 'approved']);
+            }
+            $this->provisionVendorUser($v->fresh());
+        });
+
+        $v = $v->fresh();
+        $plainPassword = trim((string) $v->whatsapp_number);
         $email = $v->email;
         $sent = false;
         if ($email) {
@@ -85,6 +104,8 @@ class VendorController extends Controller
                 } else {
                     $bodyHtml = '<p>Hello ' . e($v->contact_name ?: $v->name) . ',</p>'
                         . '<p>Your vendor application for <strong>' . e($v->name) . '</strong> has been approved. You can now work with us as a vendor.</p>'
+                        . '<p><strong>Login:</strong> ' . e($v->email) . '<br/><strong>Password:</strong> ' . e($plainPassword) . '</p>'
+                        . '<p>Use the admin login panel to sign in.</p>'
                         . '<p>Thank you.</p>';
                     $sent = $this->emailService->sendSimpleEmail(
                         $email,
@@ -98,9 +119,40 @@ class VendorController extends Controller
             }
         }
         $message = $sent
-            ? 'Vendor approved and notification sent'
-            : ($email ? 'Vendor approved. Email not sent (check Admin → Email Settings).' : 'Vendor approved. No email address.');
+            ? ($wasAlreadyApproved
+                ? 'Vendor already approved. Account synced and notification sent'
+                : 'Vendor approved, account created, and notification sent')
+            : ($wasAlreadyApproved
+                ? 'Vendor already approved. Account synced. Email not sent (check Admin → Email Settings).'
+                : 'Vendor approved and account created. Email not sent (check Admin → Email Settings).');
         return response()->json(['message' => $message, 'data' => $this->resource($v->fresh())]);
+    }
+
+    public function systemStatus(): JsonResponse
+    {
+        $this->authorizeSystemStatusChange();
+
+        return response()->json([
+            'data' => [
+                'isActive' => filter_var(Setting::getValue('vendor_system_active', '1'), FILTER_VALIDATE_BOOLEAN),
+            ],
+        ]);
+    }
+
+    public function updateSystemStatus(Request $request): JsonResponse
+    {
+        $this->authorizeSystemStatusChange();
+
+        $validated = $request->validate([
+            'isActive' => ['required', 'boolean'],
+        ]);
+
+        Setting::setValue('vendor_system_active', $validated['isActive'] ? '1' : '0');
+
+        return response()->json([
+            'message' => $validated['isActive'] ? 'Vendor system activated' : 'Vendor system deactivated',
+            'data' => ['isActive' => (bool) $validated['isActive']],
+        ]);
     }
 
     public function show(string $id): JsonResponse
@@ -149,5 +201,43 @@ class VendorController extends Controller
             'createdAt' => $v->created_at?->toIso8601String(),
             'updatedAt' => $v->updated_at?->toIso8601String(),
         ];
+    }
+
+    private function provisionVendorUser(Vendor $vendor): User
+    {
+        $email = trim((string) $vendor->email);
+        $password = trim((string) $vendor->whatsapp_number);
+
+        $existingByVendor = User::where('vendor_id', $vendor->id)->first();
+        $existingByEmail = User::where('email', $email)->first();
+
+        if ($existingByEmail && in_array(strtoupper((string) $existingByEmail->role), ['ADMIN', 'SUPERADMIN'], true)) {
+            throw ValidationException::withMessages([
+                'email' => ['This email is already used by an admin account. Use another vendor email.'],
+            ]);
+        }
+
+        $user = $existingByVendor ?? $existingByEmail ?? new User();
+
+        $user->name = $vendor->contact_name ?: $vendor->name;
+        $user->email = $email;
+        $user->phone = $password;
+        $user->password = $password;
+        $user->role = 'VENDOR';
+        $user->vendor_id = $vendor->id;
+        if ($user->is_active === null) {
+            $user->is_active = true;
+        }
+        $user->save();
+
+        return $user;
+    }
+
+    private function authorizeSystemStatusChange(): void
+    {
+        $role = strtoupper((string) request()->user()?->role);
+        if (! in_array($role, ['ADMIN', 'SUPERADMIN'], true)) {
+            abort(response()->json(['message' => 'Only admin/superadmin can manage vendor system status.'], 403));
+        }
     }
 }

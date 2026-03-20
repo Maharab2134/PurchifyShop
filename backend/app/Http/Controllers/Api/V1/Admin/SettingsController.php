@@ -119,6 +119,15 @@ class SettingsController extends Controller
             ],
         ], is_array($animationSettings) ? $animationSettings : []);
 
+        $pixelSettingsRaw = Setting::getValue('pixel_settings', '{}');
+        $pixelSettings = json_decode($pixelSettingsRaw, true) ?: [];
+        $pixelSettings = array_merge([
+            'isActive' => false,
+            'metaPixelId' => '',
+            'googleTagManagerId' => '',
+            'googleAnalyticsId' => '',
+        ], is_array($pixelSettings) ? $pixelSettings : []);
+
         $languageSettingsRaw = Setting::getValue('language_settings', '{}');
         $languageSettings = json_decode($languageSettingsRaw, true) ?: [];
         $languageSettings = array_replace_recursive($this->getDefaultLanguageSettings(), is_array($languageSettings) ? $languageSettings : []);
@@ -135,6 +144,7 @@ class SettingsController extends Controller
                 'seoSettings' => $seoSettings,
                 'popupSettings' => $popupSettings,
                 'animationSettings' => $animationSettings,
+                'pixelSettings' => $pixelSettings,
                 'languageSettings' => $languageSettings,
                 'translations' => $translations,
             ],
@@ -207,6 +217,12 @@ class SettingsController extends Controller
             'animationSettings.pageTransitionAnimation.duration' => ['nullable', 'integer', 'min:100', 'max:10000'],
             'animationSettings.pageTransitionAnimation.backgroundColor' => ['nullable', 'string', 'max:32'],
             'animationSettings.pageTransitionAnimation.circleColor' => ['nullable', 'string', 'max:32'],
+
+            'pixelSettings' => ['nullable', 'array'],
+            'pixelSettings.isActive' => ['nullable', 'boolean'],
+            'pixelSettings.metaPixelId' => ['nullable', 'string', 'max:64'],
+            'pixelSettings.googleTagManagerId' => ['nullable', 'string', 'max:64'],
+            'pixelSettings.googleAnalyticsId' => ['nullable', 'string', 'max:64'],
 
             'languageSettings' => ['nullable', 'array'],
             'languageSettings.isActive' => ['nullable', 'boolean'],
@@ -324,6 +340,18 @@ class SettingsController extends Controller
             Setting::setValue('animation_settings', json_encode($merged));
         }
 
+        if (array_key_exists('pixelSettings', $validated) && is_array($validated['pixelSettings'])) {
+            $pixelSettingsRaw = Setting::getValue('pixel_settings', '{}');
+            $current = json_decode($pixelSettingsRaw, true) ?: [];
+            $merged = array_merge([
+                'isActive' => false,
+                'metaPixelId' => '',
+                'googleTagManagerId' => '',
+                'googleAnalyticsId' => '',
+            ], is_array($current) ? $current : [], $validated['pixelSettings']);
+            Setting::setValue('pixel_settings', json_encode($merged));
+        }
+
         if (array_key_exists('languageSettings', $validated) && is_array($validated['languageSettings'])) {
             $currentRaw = Setting::getValue('language_settings', '{}');
             $current = json_decode($currentRaw, true) ?: [];
@@ -395,6 +423,55 @@ class SettingsController extends Controller
             'pages' => [],
         ], is_array($seoSettings) ? $seoSettings : []);
 
+        $popupSettingsRaw = Setting::getValue('popup_settings', '{}');
+        $popupSettings = json_decode($popupSettingsRaw, true) ?: [];
+        $popupSettings = array_merge([
+            'isActive' => false,
+            'showTime' => 3000,
+            'delayTime' => 1000,
+            'image' => '',
+            'title' => '',
+            'description' => '',
+            'buttonText' => '',
+            'buttonLink' => '',
+            'pages' => [],
+        ], is_array($popupSettings) ? $popupSettings : []);
+
+        $animationSettingsRaw = Setting::getValue('animation_settings', '{}');
+        $animationSettings = json_decode($animationSettingsRaw, true) ?: [];
+        $animationSettings = array_merge([
+            'welcomeAnimation' => [
+                'isActive' => false,
+                'duration' => 3000,
+                'showConfetti' => true,
+                'backgroundColor' => '#000000',
+                'circleColor' => '#ffffff',
+            ],
+            'pageTransitionAnimation' => [
+                'isActive' => false,
+                'duration' => 1000,
+                'backgroundColor' => '#000000',
+                'circleColor' => '#6366f1',
+            ],
+        ], is_array($animationSettings) ? $animationSettings : []);
+
+        $pixelSettingsRaw = Setting::getValue('pixel_settings', '{}');
+        $pixelSettings = json_decode($pixelSettingsRaw, true) ?: [];
+        $pixelSettings = array_merge([
+            'isActive' => false,
+            'metaPixelId' => '',
+            'googleTagManagerId' => '',
+            'googleAnalyticsId' => '',
+        ], is_array($pixelSettings) ? $pixelSettings : []);
+
+        $languageSettingsRaw = Setting::getValue('language_settings', '{}');
+        $languageSettings = json_decode($languageSettingsRaw, true) ?: [];
+        $languageSettings = array_replace_recursive($this->getDefaultLanguageSettings(), is_array($languageSettings) ? $languageSettings : []);
+
+        $translationsRaw = Setting::getValue('i18n_translations', '{}');
+        $translations = json_decode($translationsRaw, true) ?: [];
+        $translations = array_replace_recursive($this->getDefaultTranslations(), is_array($translations) ? $translations : []);
+
         return response()->json([
             'message' => 'Settings updated',
             'data' => [
@@ -402,6 +479,11 @@ class SettingsController extends Controller
                 'topbar' => $topbar,
                 'storeInfo' => $storeInfo,
                 'seoSettings' => $seoSettings,
+                'popupSettings' => $popupSettings,
+                'animationSettings' => $animationSettings,
+                'pixelSettings' => $pixelSettings,
+                'languageSettings' => $languageSettings,
+                'translations' => $translations,
             ],
         ]);
     }

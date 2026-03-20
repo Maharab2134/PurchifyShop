@@ -12,11 +12,10 @@ export default function FloatingContactWidget({ embedded }: Props) {
     storeInfoApi
       .get()
       .then((data) => {
-        console.log("Store Info:", data); // এখানে দাও
         setStoreInfo(data);
       })
       .catch((err) => {
-        console.log("Error:", err);
+        console.error("Error:", err);
       });
   }, []);
 

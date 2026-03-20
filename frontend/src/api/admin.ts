@@ -303,6 +303,10 @@ export interface AdminVendor {
   updatedAt?: string;
 }
 
+export interface AdminVendorSystemStatus {
+  isActive: boolean;
+}
+
 export interface AdminIncompleteOrder {
   id: string;
   userId: string | null;
@@ -984,6 +988,38 @@ export const adminApi = {
     });
   },
 
+  media: {
+    list: (params?: {
+      folder?:
+        | "all"
+        | "logo"
+        | "categories"
+        | "products"
+        | "brands"
+        | "utility";
+      search?: string;
+      page?: number;
+      limit?: number;
+    }) =>
+      axiosInstance.get<{
+        data: {
+          media: Array<{
+            path: string;
+            url: string;
+            folder: string;
+            name: string;
+            sizeBytes: number;
+            lastModified: string | null;
+          }>;
+          totalResults: number;
+          totalPages: number;
+          currentPage: number;
+          resultsPerPage: number;
+          folders: string[];
+        };
+      }>(`${BASE}/media`, { params }),
+  },
+
   images: {
     delete: (body: {
       path: string;
@@ -1171,6 +1207,15 @@ export const adminApi = {
     approve: (id: string) =>
       axiosInstance.post<{ message: string; data: AdminVendor }>(
         `${BASE}/vendors/${id}/approve`,
+      ),
+    getSystemStatus: () =>
+      axiosInstance.get<{ data: AdminVendorSystemStatus }>(
+        `${BASE}/vendors/system-status`,
+      ),
+    updateSystemStatus: (body: { isActive: boolean }) =>
+      axiosInstance.put<{ message: string; data: AdminVendorSystemStatus }>(
+        `${BASE}/vendors/system-status`,
+        body,
       ),
     get: (id: string) =>
       axiosInstance.get<{ data: AdminVendor }>(`${BASE}/vendors/${id}`),
@@ -1505,19 +1550,19 @@ export const adminApi = {
       name: string;
       slug?: string;
       themeType?: string;
-      title?: string;
-      description?: string;
-      subtitle?: string;
+      title?: string | null;
+      description?: string | null;
+      subtitle?: string | null;
       themeData?: Record<string, any>;
-      backgroundColor?: string;
-      textColor?: string;
-      ctaText?: string;
-      ctaLink?: string;
+      backgroundColor?: string | null;
+      textColor?: string | null;
+      ctaText?: string | null;
+      ctaLink?: string | null;
       isVisible?: boolean;
       sortOrder?: number;
-      countdownEnd?: string;
-      icon?: string;
-      image?: string;
+      countdownEnd?: string | null;
+      icon?: string | null;
+      image?: string | null;
     }) =>
       axiosInstance.post<{
         message: string;
@@ -1548,19 +1593,19 @@ export const adminApi = {
         name?: string;
         slug?: string;
         themeType?: string;
-        title?: string;
-        description?: string;
-        subtitle?: string;
+        title?: string | null;
+        description?: string | null;
+        subtitle?: string | null;
         themeData?: Record<string, any>;
-        backgroundColor?: string;
-        textColor?: string;
-        ctaText?: string;
-        ctaLink?: string;
+        backgroundColor?: string | null;
+        textColor?: string | null;
+        ctaText?: string | null;
+        ctaLink?: string | null;
         isVisible?: boolean;
         sortOrder?: number;
-        countdownEnd?: string;
-        icon?: string;
-        image?: string;
+        countdownEnd?: string | null;
+        icon?: string | null;
+        image?: string | null;
       },
     ) =>
       axiosInstance.put<{
@@ -1671,6 +1716,12 @@ export const adminApi = {
               circleColor: string;
             };
           };
+          pixelSettings?: {
+            isActive: boolean;
+            metaPixelId: string;
+            googleTagManagerId: string;
+            googleAnalyticsId: string;
+          };
           languageSettings?: {
             isActive: boolean;
             defaultLang: "en" | "bn";
@@ -1742,6 +1793,12 @@ export const adminApi = {
           circleColor?: string;
         };
       };
+      pixelSettings?: {
+        isActive?: boolean;
+        metaPixelId?: string;
+        googleTagManagerId?: string;
+        googleAnalyticsId?: string;
+      };
       languageSettings?: {
         isActive?: boolean;
         defaultLang?: "en" | "bn";
@@ -1801,6 +1858,12 @@ export const adminApi = {
               backgroundColor: string;
               circleColor: string;
             };
+          };
+          pixelSettings?: {
+            isActive: boolean;
+            metaPixelId: string;
+            googleTagManagerId: string;
+            googleAnalyticsId: string;
           };
           languageSettings?: {
             isActive: boolean;

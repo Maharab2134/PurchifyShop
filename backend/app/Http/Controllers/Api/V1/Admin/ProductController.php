@@ -11,6 +11,7 @@ use App\Models\ProductVariantAttribute;
 use App\Services\ImageDeletionService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
@@ -23,6 +24,11 @@ class ProductController extends Controller
     public function index(Request $request): JsonResponse
     {
         $q = Product::query()->with(['category', 'subcategory', 'brand', 'variants']);
+        $vendorId = $this->resolveVendorId();
+        if ($vendorId !== null) {
+            $q->where('vendor_id', $vendorId);
+        }
+
         if ($request->filled('categoryId')) {
             $q->where('category_id', $request->input('categoryId'));
         }
@@ -55,6 +61,11 @@ class ProductController extends Controller
     public function show(string $id): JsonResponse
     {
         $product = Product::with(['category', 'subcategory', 'brand', 'variants.sizes'])->findOrFail($id);
+        $vendorId = $this->resolveVendorId();
+        if ($vendorId !== null && $product->vendor_id !== $vendorId) {
+            abort(404);
+        }
+
         return response()->json(['data' => $this->productResource($product, true)]);
     }
 
@@ -380,5 +391,15 @@ class ProductController extends Controller
         if (count($toDelete) > 0) {
             ProductVariant::whereIn('id', $toDelete)->delete();
         }
+    }
+
+    private function resolveVendorId(): ?string
+    {
+        $user = Auth::user();
+        if (! $user) {
+            return null;
+        }
+
+        return strtoupper((string) $user->role) === 'VENDOR' ? ($user->vendor_id ?: null) : null;
     }
 }

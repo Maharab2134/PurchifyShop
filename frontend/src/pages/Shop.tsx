@@ -208,7 +208,7 @@ export default function Shop() {
                     }}
                     className="hidden lg:block"
                   >
-                    <div className="w-[280px] xl:w-[320px] flex-shrink-0">
+                    <div className="w-[280px] xl:w-[320px] flex-shrink-0 lg:sticky lg:top-24 lg:self-start">
                       <ProductFilters
                         initialFilters={initialFilters}
                         onFilterChange={updateFilters}
@@ -291,8 +291,8 @@ export default function Shop() {
                   <div
                     className={`grid gap-2.5 sm:gap-3 lg:gap-4 xl:gap-6 ${
                       filtersVisible
-                        ? "grid-cols-2 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4"
-                        : "grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5"
+                        ? "grid-cols-2 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-2 2xl:grid-cols-3"
+                        : "grid-cols-2 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4"
                     }`}
                   >
                     {[...Array(8)].map((_, index) => (
@@ -363,8 +363,8 @@ export default function Shop() {
                     <div
                       className={`grid gap-2.5 sm:gap-3 lg:gap-4 xl:gap-6 ${
                         filtersVisible
-                          ? "grid-cols-2 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4"
-                          : "grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5"
+                          ? "grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-4"
+                          : "grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-4"
                       }`}
                     >
                       {products.map((product, index) => (
@@ -374,7 +374,12 @@ export default function Shop() {
                           animate={{ opacity: 1, y: 0 }}
                           transition={{ duration: 0.3, delay: index * 0.05 }}
                         >
-                          <ProductCard product={product} />
+                          <ProductCard
+                            product={product}
+                            singleLineTitle
+                            compact
+                            imageAspectClass="aspect-[5/4]"
+                          />
                         </motion.div>
                       ))}
                     </div>

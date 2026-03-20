@@ -2,7 +2,6 @@ import { Link, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Heart, ShoppingCart, Zap, Star, Eye } from "lucide-react";
 import { useState, useEffect } from "react";
-import Rating from "@/components/feedback/Rating";
 import { generateProductPlaceholder } from "@/utils/placeholderImage";
 import { toImageUrl } from "@/utils/imageUrl";
 import { buildProductImageAlt } from "@/utils/seo";
@@ -20,15 +19,16 @@ interface ProductCardProps {
   imageAspectClass?: string;
   showQuickView?: boolean;
   onQuickView?: () => void;
+  singleLineTitle?: boolean;
 }
 
 export default function ProductCard({
   product,
   compact = false,
-  showOnlyBuyNow = false,
   imageAspectClass,
   showQuickView = false,
   onQuickView,
+  singleLineTitle = false,
 }: ProductCardProps) {
   const navigate = useNavigate();
   const { showToast } = useToast();
@@ -174,33 +174,6 @@ export default function ProductCard({
     }
   };
 
-  const handleBuyNow = async (e: React.MouseEvent) => {
-    e.stopPropagation();
-    if (!firstVariant) {
-      navigate(`/product/${product.slug}`);
-      return;
-    }
-    if (addingToCart) return;
-    setAddingToCart(true);
-    try {
-      await cartApi.addItem({
-        variantId: firstVariant.id,
-        quantity: 1,
-        sizeId: firstVariant.sizes?.[0]?.id,
-        selectedImage: selectedImageForCart,
-      });
-      showToast("Added to cart!", "success", {
-        label: "View Cart",
-        href: "/cart",
-      });
-      navigate("/cart");
-    } catch {
-      showToast("Could not add to cart", "error");
-    } finally {
-      setAddingToCart(false);
-    }
-  };
-
   const productImages =
     product.images && Array.isArray(product.images) && product.images.length > 0
       ? product.images
@@ -220,6 +193,10 @@ export default function ProductCard({
   const selectedImageForCart =
     firstImage && !firstImage.startsWith("data:") ? firstImage : undefined;
 
+  const goToProductDetails = () => {
+    navigate(`/product/${product.slug}`);
+  };
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -228,10 +205,11 @@ export default function ProductCard({
       transition={{ duration: 0.3, type: "spring", stiffness: 300 }}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
+      onClick={goToProductDetails}
       className={`group bg-white dark:bg-gray-900 rounded-2xl overflow-hidden relative h-full flex flex-col
         border border-gray-100 dark:border-gray-800 hover:border-pink-200 dark:hover:border-pink-900
         hover:shadow-2xl hover:shadow-pink-500/10 dark:hover:shadow-pink-500/5
-        transition-all duration-500 ease-out ${compact ? "rounded-xl" : ""}`}
+        transition-all duration-500 ease-out cursor-pointer ${compact ? "rounded-xl" : ""}`}
     >
       {/* Top Badges */}
       <div className="absolute top-3 left-3 right-3 z-20 flex justify-between items-start">
@@ -397,7 +375,7 @@ export default function ProductCard({
       >
         <div className="block flex-grow space-y-2 min-w-0">
           {/* Category and Brand */}
-          <div className="flex items-center justify-between gap-2 mb-1 min-w-0">
+          <div className="hidden md:flex items-center justify-between gap-2 mb-1 min-w-0">
             {product.category && (
               <Link
                 to={`/shop?categoryId=${product.category.id}`}
@@ -424,7 +402,7 @@ export default function ProductCard({
             className="block group/title min-w-0"
           >
             <h3
-              className={`font-semibold text-gray-900 dark:text-gray-100 line-clamp-2 leading-tight break-words overflow-hidden
+              className={`font-semibold text-gray-900 dark:text-gray-100 ${singleLineTitle ? "line-clamp-1" : "line-clamp-1 md:line-clamp-2"} leading-tight break-words overflow-hidden
                 group-hover/title:text-pink-600 dark:group-hover/title:text-pink-400 transition-colors
                 ${compact ? "text-base mb-2" : "text-lg mb-3"}`}
             >
@@ -440,12 +418,12 @@ export default function ProductCard({
                 {product.averageRating?.toFixed(1) || "0.0"}
               </span>
             </div>
-            <span className="text-xs text-gray-500 dark:text-gray-400 shrink-0">
+            <span className="hidden md:inline text-xs text-gray-500 dark:text-gray-400 shrink-0">
               ({product.reviewCount || 0}
               <span className="hidden sm:inline"> reviews</span>)
             </span>
-            <div className="flex-1 min-w-0" />
-            <div className="flex items-center gap-1 text-xs text-gray-500 dark:text-gray-400 shrink-0">
+            <div className="hidden md:flex flex-1 min-w-0" />
+            <div className="hidden md:flex items-center gap-1 text-xs text-gray-500 dark:text-gray-400 shrink-0">
               <Zap size={12} className="text-green-500" />
               <span>{product.salesCount || 0} sold</span>
             </div>
@@ -463,13 +441,13 @@ export default function ProductCard({
               </span>
               {hasDiscount && (
                 <>
-                  <span className="text-sm text-gray-500 dark:text-gray-400 line-through shrink-0">
+                  <span className="hidden md:inline text-sm text-gray-500 dark:text-gray-400 line-through shrink-0">
                     ৳{originalPrice.toFixed(0)}
                   </span>
                   <motion.span
                     initial={{ scale: 0 }}
                     animate={{ scale: 1 }}
-                    className="inline-block shrink-0 whitespace-nowrap text-xs font-bold text-green-600 dark:text-green-400 bg-green-50 dark:bg-green-900/20 px-2 py-0.5 rounded-full"
+                    className="hidden md:inline-block shrink-0 whitespace-nowrap text-xs font-bold text-green-600 dark:text-green-400 bg-green-50 dark:bg-green-900/20 px-2 py-0.5 rounded-full"
                   >
                     Save ৳{(originalPrice - discountedPrice).toFixed(0)}
                   </motion.span>
@@ -479,7 +457,7 @@ export default function ProductCard({
 
             {/* Stock Indicator */}
             {!isOutOfStock && totalStock > 0 && (
-              <div className="mt-1 min-w-0">
+              <div className="hidden md:block mt-1 min-w-0">
                 <div className="text-xs text-gray-500 dark:text-gray-400">
                   Only {totalStock} left in stock
                 </div>
@@ -497,28 +475,21 @@ export default function ProductCard({
         </div>
 
         {/* Action Buttons */}
-        <div className="flex flex-col sm:flex-row gap-2 mt-4">
+        <div className="flex gap-2 mt-4">
           <motion.button
-            onClick={handleBuyNow}
+            onClick={handleAddToCart}
             disabled={isOutOfStock || addingToCart || !firstVariant}
             className="flex-1 whitespace-nowrap bg-gradient-to-r from-pink-500 to-rose-500
       text-white rounded-xl font-semibold py-2.5 sm:py-3 text-sm sm:text-base
       flex items-center justify-center gap-2 shadow-lg"
           >
-            Buy Now
+            {addingToCart ? (
+              <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+            ) : (
+              <ShoppingCart size={16} />
+            )}
+            Add to Cart
           </motion.button>
-
-          {!showOnlyBuyNow && (
-            <motion.button
-              onClick={handleAddToCart}
-              disabled={isOutOfStock || addingToCart || !firstVariant}
-              className="flex-1 whitespace-nowrap bg-gradient-to-r from-teal-500 to-emerald-500
-        text-white rounded-xl font-semibold py-2.5 sm:py-3 text-sm sm:text-base
-        flex items-center justify-center gap-2 shadow-lg"
-            >
-              Add to Cart
-            </motion.button>
-          )}
         </div>
       </div>
     </motion.div>

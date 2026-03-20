@@ -29,6 +29,7 @@ import {
   Sparkles,
   Mail,
   Tag,
+  Image,
 } from "lucide-react";
 import { authApi } from "@/api/auth";
 import { logout } from "@/store/slices/authSlice";
@@ -144,6 +145,11 @@ const sections: MenuSection[] = [
     links: [
       { name: "Notices", href: "/dashboard/notices", icon: MessageSquare },
       {
+        name: "Media Manager",
+        href: "/dashboard/media-manager",
+        icon: Image,
+      },
+      {
         name: "Home Sections",
         href: "/dashboard/home-sections",
         icon: LayoutGrid,
@@ -179,10 +185,39 @@ function AdminSidebar() {
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
   const { user } = useAuth();
+  const roleUpper = (user?.role ?? "").toUpperCase();
+  const isVendor = roleUpper === "VENDOR";
+
+  const vendorSections: MenuSection[] = [
+    {
+      title: "Products",
+      icon: Package,
+      links: [
+        { name: "All Products", href: "/dashboard/products", icon: Layers },
+      ],
+      defaultOpen: true,
+    },
+    {
+      title: "Sales",
+      icon: ShoppingCart,
+      links: [
+        { name: "Orders", href: "/dashboard/orders", icon: ShoppingCart },
+        {
+          name: "Transactions",
+          href: "/dashboard/transactions",
+          icon: CreditCard,
+        },
+      ],
+      defaultOpen: true,
+    },
+  ];
 
   // Get user permissions from role
   const getUserPermissions = (): string[] => {
     if (!user) return [];
+    if (isVendor) {
+      return vendorSections.map((s) => s.title);
+    }
     // SUPERADMIN has access to everything
     if (user.role === "SUPERADMIN") {
       return sections.map((s) => s.title);
@@ -202,9 +237,10 @@ function AdminSidebar() {
   };
 
   const userPermissions = getUserPermissions();
+  const availableSections = isVendor ? vendorSections : sections;
 
   // Filter sections based on permissions
-  const filteredSections = sections.filter((section) => {
+  const filteredSections = availableSections.filter((section) => {
     return userPermissions.includes(section.title);
   });
 
@@ -231,7 +267,7 @@ function AdminSidebar() {
         }
       }
       const initial: Record<string, boolean> = {};
-      sections.forEach((s) => {
+      availableSections.forEach((s) => {
         initial[s.title] = s.defaultOpen ?? false;
       });
       return initial;

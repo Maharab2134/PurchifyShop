@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api\V1;
 
 use App\Http\Controllers\Controller;
+use App\Models\Setting;
 use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -71,11 +72,26 @@ class AuthController extends Controller
             ]);
         }
 
-        $user->load('roleModel');
+        $user->load(['roleModel', 'vendor']);
         if ($user->roleModel && $user->roleModel->is_active === false) {
             throw ValidationException::withMessages([
                 'email' => ['Your role has been deactivated. Contact support.'],
             ]);
+        }
+
+        if (strtoupper((string) $user->role) === 'VENDOR') {
+            $isVendorSystemActive = filter_var(Setting::getValue('vendor_system_active', '1'), FILTER_VALIDATE_BOOLEAN);
+            if (! $isVendorSystemActive) {
+                throw ValidationException::withMessages([
+                    'email' => ['Vendor system is currently inactive. Please contact support.'],
+                ]);
+            }
+
+            if (! $user->vendor_id || ! $user->vendor || $user->vendor->status !== 'approved') {
+                throw ValidationException::withMessages([
+                    'email' => ['Your vendor account is not approved yet.'],
+                ]);
+            }
         }
 
         // For SUPERADMIN: revoke all existing tokens to enforce single session
@@ -280,6 +296,7 @@ class AuthController extends Controller
             'name' => $user->name,
             'email' => $user->email,
             'phone' => $user->phone,
+            'vendorId' => $user->vendor_id,
             'role' => $user->role,
             'roleId' => $user->role_id,
             'roleModel' => $user->roleModel ? [

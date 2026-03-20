@@ -2,10 +2,20 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import Rating from "@/components/feedback/Rating";
 import PriceDisplay from "@/components/product/PriceDisplay";
-import { Palette, Ruler, Info, Package, Check, X, Heart } from "lucide-react";
+import {
+  Palette,
+  Ruler,
+  Info,
+  Package,
+  Check,
+  X,
+  Heart,
+  MessageCircle,
+} from "lucide-react";
 import { motion } from "framer-motion";
 import { cartApi } from "@/api/cart";
 import { wishlistApi } from "@/api/wishlist";
+import { storeInfoApi } from "@/api/storeInfo";
 import { useAuth } from "@/hooks/useAuth";
 import useToast from "@/hooks/useToast";
 import AddToCartPopup from "@/components/cart/AddToCartPopup";
@@ -36,7 +46,7 @@ export default function ProductInfo({
   name,
   averageRating,
   reviewCount,
-  shortDescription: _shortDescription,
+  shortDescription,
   brand,
   variants,
   selectedVariant,
@@ -57,6 +67,8 @@ export default function ProductInfo({
   const [addToCartPopupOpen, setAddToCartPopupOpen] = useState(false);
   const [inWishlist, setInWishlist] = useState(false);
   const [wishlistLoading, setWishlistLoading] = useState(false);
+  const [whatsAppLink, setWhatsAppLink] = useState("");
+  const [storePhone, setStorePhone] = useState("");
 
   useEffect(() => {
     if (!isAuthenticated || !productId) {
@@ -71,6 +83,139 @@ export default function ProductInfo({
       })
       .catch(() => setInWishlist(false));
   }, [isAuthenticated, productId]);
+
+  useEffect(() => {
+    storeInfoApi
+      .get()
+      .then((data) => {
+        setWhatsAppLink(data.whatsappLink || "");
+        setStorePhone(data.phone || "");
+      })
+      .catch(() => {
+        setWhatsAppLink("");
+        setStorePhone("");
+      });
+  }, []);
+
+  const normalizePhoneForWhatsApp = (phoneRaw: string): string | null => {
+    const digits = phoneRaw.replace(/[^\d]/g, "");
+    if (!digits) return null;
+
+    if (digits.startsWith("880") && digits.length >= 11) {
+      return digits;
+    }
+
+    if (digits.startsWith("0") && digits.length >= 10) {
+      return `88${digits}`;
+    }
+
+    return digits.length >= 8 ? digits : null;
+  };
+
+  const normalizeWhatsAppLink = (link: string): string | null => {
+    const raw = link.trim();
+    if (!raw) return null;
+
+    if (/^https?:\/\//i.test(raw)) {
+      return raw;
+    }
+
+    const looksLikePath =
+      /^(wa\.me|api\.whatsapp\.com|chat\.whatsapp\.com)\//i.test(raw);
+    if (looksLikePath) {
+      return `https://${raw}`;
+    }
+
+    const directDigits = raw.replace(/[^\d]/g, "");
+    if (directDigits.length >= 8) {
+      return `https://wa.me/${directDigits}`;
+    }
+
+    return null;
+  };
+
+  const buildWhatsAppUrl = (
+    configuredLink: string,
+    fallbackPhone: string,
+    message: string,
+  ): string | null => {
+    const normalized = normalizeWhatsAppLink(configuredLink);
+    if (!normalized) return null;
+
+    try {
+      const url = new URL(normalized);
+      const host = url.hostname.replace(/^www\./i, "").toLowerCase();
+      const isWhatsAppHost = host === "wa.me" || host.endsWith("whatsapp.com");
+
+      if (!isWhatsAppHost) return null;
+
+      const phoneFromQuery = url.searchParams.get("phone") || "";
+      const pathParts = url.pathname.split("/").filter(Boolean);
+      const phoneFromPath =
+        pathParts.find((part) => /^\d{8,15}$/.test(part)) || "";
+      const phone =
+        normalizePhoneForWhatsApp(phoneFromQuery) ||
+        normalizePhoneForWhatsApp(phoneFromPath) ||
+        normalizePhoneForWhatsApp(fallbackPhone);
+
+      if (phone) {
+        return `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
+      }
+
+      // Some links like wa.me/message/<code> may ignore text query if no phone is available.
+      url.searchParams.set("text", message);
+      return url.toString();
+    } catch {
+      return null;
+    }
+  };
+
+  const buildOrderMessage = (): string => {
+    const attributeText = Object.entries(selectedAttributes)
+      .filter(([, value]) => value && value.trim())
+      .map(([key, value]) => `${key}: ${value}`)
+      .join(", ");
+
+    const selectedSizeName =
+      availableSizes.find((s) => s.id === selectedSizeId)?.name || "N/A";
+
+    const lines = [
+      "Assalamu Alaikum, ami ei product ta order korte chai.",
+      "",
+      `Product: ${name}`,
+      `SKU: ${activeVariant?.sku || "N/A"}`,
+      `Price: BDT ${price.toFixed(2)}`,
+      `Quantity: 1`,
+      `Size: ${selectedSizeName}`,
+      `Variant: ${attributeText || "Default"}`,
+      `Product Link: ${window.location.href}`,
+      "",
+      "Please confirm the order process.",
+    ];
+
+    return lines.join("\n");
+  };
+
+  const handleWhatsAppOrder = (e: React.MouseEvent) => {
+    e.preventDefault();
+
+    if (sizeRequired) {
+      showToast("Please select a size", "error");
+      return;
+    }
+    if (!selectedVariant || !stock) {
+      showToast("Please select an available variant", "error");
+      return;
+    }
+
+    const url = buildWhatsAppUrl(whatsAppLink, storePhone, buildOrderMessage());
+    if (!url) {
+      showToast("WhatsApp number is not configured", "error");
+      return;
+    }
+
+    window.open(url, "_blank", "noopener,noreferrer");
+  };
 
   const handleAddToCart = async (e: React.MouseEvent) => {
     e.preventDefault();
@@ -118,11 +263,11 @@ export default function ProductInfo({
         sizeId: selectedSizeId ?? undefined,
         selectedImage: selectedImageForCart,
       });
-      showToast("Added to cart!", "success", {
-        label: "View Cart",
-        href: "/cart",
+      showToast("Proceeding to checkout...", "success", {
+        label: "Go Checkout",
+        href: "/checkout",
       });
-      navigate("/cart");
+      navigate("/checkout");
     } catch (err: unknown) {
       const msg =
         (err as { response?: { data?: { message?: string } } })?.response?.data
@@ -201,6 +346,12 @@ export default function ProductInfo({
           </h1>
         )}
       </div>
+
+      {shortDescription?.trim() && (
+        <p className="-mt-2 text-xs sm:text-sm text-gray-600 dark:text-gray-300 leading-relaxed line-clamp-2">
+          {shortDescription.trim()}
+        </p>
+      )}
 
       {/* Wishlist Button - positioned absolutely in top-right */}
       <button
@@ -528,25 +679,51 @@ export default function ProductInfo({
             "Select a Variant"
           )}
         </button>
-        <button
-          type="button"
-          disabled={!stock || !selectedVariant || sizeRequired || buyNowLoading}
-          onClick={handleBuyNow}
-          className={`w-full py-2.5 sm:py-3 lg:py-4 text-sm sm:text-base font-semibold border-2 rounded-lg sm:rounded-xl transition-all duration-300 ${
-            stock && selectedVariant && !sizeRequired && !buyNowLoading
-              ? "border-indigo-600 dark:border-indigo-500 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-900/30 hover:shadow-lg transform hover:scale-[1.02]"
-              : "border-gray-300 dark:border-gray-600 text-gray-400 dark:text-gray-500 cursor-not-allowed"
-          }`}
-        >
-          {buyNowLoading ? (
-            <span className="flex items-center justify-center gap-2">
-              <span className="w-4 h-4 border-2 border-indigo-600 border-t-transparent rounded-full animate-spin" />
-              Adding...
-            </span>
-          ) : (
-            "Buy Now"
-          )}
-        </button>
+        <div className="grid grid-cols-2 gap-2.5 sm:gap-3">
+          <button
+            type="button"
+            disabled={
+              !stock || !selectedVariant || sizeRequired || buyNowLoading
+            }
+            onClick={handleBuyNow}
+            className={`w-full py-2.5 sm:py-3 text-sm sm:text-base font-semibold border-2 rounded-lg sm:rounded-xl transition-all duration-300 ${
+              stock && selectedVariant && !sizeRequired && !buyNowLoading
+                ? "border-indigo-600 dark:border-indigo-500 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-900/30 hover:shadow-lg"
+                : "border-gray-300 dark:border-gray-600 text-gray-400 dark:text-gray-500 cursor-not-allowed"
+            }`}
+          >
+            {buyNowLoading ? (
+              <span className="flex items-center justify-center gap-2">
+                <span className="w-4 h-4 border-2 border-indigo-600 border-t-transparent rounded-full animate-spin" />
+                Adding...
+              </span>
+            ) : (
+              "Buy Now"
+            )}
+          </button>
+
+          <button
+            type="button"
+            disabled={
+              !stock ||
+              !selectedVariant ||
+              sizeRequired ||
+              !whatsAppLink?.trim()
+            }
+            onClick={handleWhatsAppOrder}
+            className={`w-full py-2.5 sm:py-3 text-sm sm:text-base font-semibold border-2 rounded-lg sm:rounded-xl transition-all duration-300 flex items-center justify-center gap-2 ${
+              stock &&
+              selectedVariant &&
+              !sizeRequired &&
+              !!whatsAppLink?.trim()
+                ? "border-emerald-600 dark:border-emerald-500 text-emerald-700 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 hover:shadow-lg"
+                : "border-gray-300 dark:border-gray-600 text-gray-400 dark:text-gray-500 cursor-not-allowed"
+            }`}
+          >
+            <MessageCircle size={16} />
+            WhatsApp
+          </button>
+        </div>
       </div>
       <AddToCartPopup
         open={addToCartPopupOpen}

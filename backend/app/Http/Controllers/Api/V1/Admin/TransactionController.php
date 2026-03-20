@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Transaction;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class TransactionController extends Controller
 {
@@ -16,6 +17,13 @@ class TransactionController extends Controller
     public function index(Request $request): JsonResponse
     {
         $q = Transaction::with(['order.user', 'order.payment'])->orderByDesc('transaction_date');
+
+        $vendorId = $this->resolveVendorId();
+        if ($vendorId !== null) {
+            $q->whereHas('order.orderItems.variant.product', function ($p) use ($vendorId) {
+                $p->where('vendor_id', $vendorId);
+            });
+        }
 
         if ($request->filled('status')) {
             $q->whereHas('order.payment', fn ($p) => $p->where('status', $request->input('status')));
@@ -98,5 +106,15 @@ class TransactionController extends Controller
                 'message' => 'Transaction not found',
             ], 404);
         }
+    }
+
+    private function resolveVendorId(): ?string
+    {
+        $user = Auth::user();
+        if (! $user) {
+            return null;
+        }
+
+        return strtoupper((string) $user->role) === 'VENDOR' ? ($user->vendor_id ?: null) : null;
     }
 }

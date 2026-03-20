@@ -80,7 +80,9 @@ const AdminEmailSettings = lazy(() => import("@/pages/admin/EmailSettings"));
 const AdminEmailTemplates = lazy(() => import("@/pages/admin/EmailTemplates"));
 const AdminEmailLogs = lazy(() => import("@/pages/admin/EmailLogs"));
 const AdminNotices = lazy(() => import("@/pages/admin/Notices"));
+const AdminMediaManager = lazy(() => import("@/pages/admin/MediaManager"));
 import PageViewTracker from "@/components/PageViewTracker";
+import PixelManager from "@/components/analytics/PixelManager";
 import SeoMeta from "@/components/seo/SeoMeta";
 import AnimationManager from "@/components/animations/AnimationManager";
 import { ToastProvider } from "@/context/ToastContext";
@@ -122,6 +124,7 @@ function AppRoutes() {
       <ScrollToTop />
       <SeoMeta />
       <PageViewTracker />
+      <PixelManager />
       <AnimationManager />
       <Suspense
         fallback={
@@ -201,6 +204,7 @@ function AppRoutes() {
             />
             <Route path="pages" element={<AdminPages />} />
             <Route path="notices" element={<AdminNotices />} />
+            <Route path="media-manager" element={<AdminMediaManager />} />
             <Route path="home-sections" element={<AdminHomeSections />} />
             <Route
               path="home-sections/add"

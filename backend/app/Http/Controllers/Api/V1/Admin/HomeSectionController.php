@@ -27,7 +27,7 @@ class HomeSectionController extends Controller
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255'],
             'slug' => ['nullable', 'string', 'max:255', 'unique:home_sections,slug'],
-            'themeType' => ['nullable', 'string', 'in:PRODUCT_GRID,PROMOTIONAL_CARDS,PROMOTIONAL_BANNER,COUNTDOWN_TIMER,COUNTDOWN_GRID,PRODUCT_CAROUSEL,CATEGORY_SHOWCASE,SPLIT_LAYOUT,IMAGE_BANNER'],
+            'themeType' => ['nullable', 'string', 'in:PRODUCT_GRID,PROMOTIONAL_CARDS,PROMOTIONAL_BANNER,COUNTDOWN_TIMER,COUNTDOWN_GRID,PRODUCT_CAROUSEL,CATEGORY_SHOWCASE,SPLIT_LAYOUT,IMAGE_BANNER,FEATURES_GRID'],
             'title' => ['nullable', 'string'],
             'description' => ['nullable', 'string'],
             'subtitle' => ['nullable', 'string'],
@@ -83,7 +83,7 @@ class HomeSectionController extends Controller
         $validated = $request->validate([
             'name' => ['sometimes', 'string', 'max:255'],
             'slug' => ['nullable', 'string', 'max:255'],
-            'themeType' => ['nullable', 'string', 'in:PRODUCT_GRID,PROMOTIONAL_CARDS,PROMOTIONAL_BANNER,COUNTDOWN_TIMER,COUNTDOWN_GRID,PRODUCT_CAROUSEL,CATEGORY_SHOWCASE,SPLIT_LAYOUT,IMAGE_BANNER'],
+            'themeType' => ['nullable', 'string', 'in:PRODUCT_GRID,PROMOTIONAL_CARDS,PROMOTIONAL_BANNER,COUNTDOWN_TIMER,COUNTDOWN_GRID,PRODUCT_CAROUSEL,CATEGORY_SHOWCASE,SPLIT_LAYOUT,IMAGE_BANNER,FEATURES_GRID'],
             'title' => ['nullable', 'string'],
             'description' => ['nullable', 'string'],
             'subtitle' => ['nullable', 'string'],
@@ -94,7 +94,8 @@ class HomeSectionController extends Controller
             'ctaLink' => ['nullable', 'string', 'max:500'],
             'isVisible' => ['nullable', 'boolean'],
             'sortOrder' => ['nullable', 'integer', 'min:0'],
-            'countdownEnd' => ['nullable', 'date', 'after_or_equal:now'],
+            // Keep update flexible so old/expired sections can still be edited.
+            'countdownEnd' => ['nullable', 'date'],
             'icon' => ['nullable', 'string', 'max:64'],
             'image' => ['nullable', 'string', 'max:512'],
         ]);

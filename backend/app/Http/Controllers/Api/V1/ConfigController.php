@@ -72,6 +72,15 @@ class ConfigController extends Controller
         $translations = json_decode($translationsRaw, true) ?: [];
         $translations = array_replace_recursive($this->getDefaultTranslations(), is_array($translations) ? $translations : []);
 
+        $pixelSettingsRaw = Setting::getValue('pixel_settings', '{}');
+        $pixelSettings = json_decode($pixelSettingsRaw, true) ?: [];
+        $pixelSettings = array_merge([
+            'isActive' => false,
+            'metaPixelId' => '',
+            'googleTagManagerId' => '',
+            'googleAnalyticsId' => '',
+        ], is_array($pixelSettings) ? $pixelSettings : []);
+
         return response()->json([
             'message' => 'Config fetched successfully',
             'data' => [
@@ -79,6 +88,7 @@ class ConfigController extends Controller
                 'topbar' => $topbar,
                 'languageSettings' => $languageSettings,
                 'translations' => $translations,
+                'pixelSettings' => $pixelSettings,
             ],
         ]);
     }

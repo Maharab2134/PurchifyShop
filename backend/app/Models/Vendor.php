@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Vendor extends Model
 {
@@ -21,4 +22,9 @@ class Vendor extends Model
         'contact_name',
         'status',
     ];
+
+    public function users(): HasMany
+    {
+        return $this->hasMany(User::class, 'vendor_id');
+    }
 }

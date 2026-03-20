@@ -34,6 +34,10 @@ interface ProductSectionProps {
   icon?: string | null;
   /** Section image URL - shows above products */
   image?: string | null;
+  /** Force product title to a single line */
+  singleLineTitle?: boolean;
+  /** Use fewer columns so cards appear wider */
+  widerCards?: boolean;
 }
 
 export default function ProductSection({
@@ -45,6 +49,8 @@ export default function ProductSection({
   countdownEnd,
   icon,
   image,
+  singleLineTitle = false,
+  widerCards = false,
 }: ProductSectionProps) {
   if (error) {
     return (
@@ -301,10 +307,21 @@ export default function ProductSection({
             </motion.div>
           )}
 
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 sm:gap-4 lg:gap-5">
+          <div
+            className={`grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 ${
+              widerCards
+                ? "lg:grid-cols-3 xl:grid-cols-4"
+                : "lg:grid-cols-4 xl:grid-cols-5"
+            } gap-3 sm:gap-4 lg:gap-5`}
+          >
             {displayProducts.map((product) => (
               <div key={product.id}>
-                <ProductCard product={product} compact showOnlyBuyNow />
+                <ProductCard
+                  product={product}
+                  compact
+                  showOnlyBuyNow
+                  singleLineTitle={singleLineTitle}
+                />
               </div>
             ))}
           </div>

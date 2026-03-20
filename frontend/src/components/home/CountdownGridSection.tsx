@@ -27,7 +27,6 @@ function CompactRowCard({ product }: { product: Product }) {
   const discountedPrice = product.discountedPrice ?? firstVariant?.price ?? 0;
   const hasDiscount =
     product.isDiscountActive && originalPrice > discountedPrice;
-  const saveAmount = hasDiscount ? originalPrice - discountedPrice : 0;
 
   const productImages = product.images ?? [];
   const variantImages = firstVariant?.images ?? [];
@@ -68,9 +67,6 @@ function CompactRowCard({ product }: { product: Product }) {
                 <span className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 line-through shrink-0">
                   ৳{originalPrice.toFixed(0)}
                 </span>
-                <span className="text-xs font-semibold text-green-600 dark:text-green-500 bg-green-50 dark:bg-green-900/20 px-1.5 py-0.5 rounded shrink-0 whitespace-nowrap">
-                  Save ৳{saveAmount.toFixed(0)}
-                </span>
               </>
             )}
           </div>
@@ -84,8 +80,13 @@ export default function CountdownGridSection({
   section,
 }: CountdownGridSectionProps) {
   const products = section.products || [];
-  const maxProducts = 10;
-  const displayProducts = products.slice(0, maxProducts);
+  const mobileLimit = 3;
+  const desktopLimit = 5;
+  const mobileProducts = products.slice(0, mobileLimit);
+  const desktopProducts = products.slice(0, desktopLimit);
+  const hasMoreMobile = products.length > mobileLimit;
+  const hasMoreDesktop = products.length > desktopLimit;
+  const viewMoreHref = section.slug ? `/section/${section.slug}` : "/shop";
   const [timeLeft, setTimeLeft] = useState<TimeLeft | null>(null);
 
   const getImageUrl = (path: string | null | undefined): string => {
@@ -130,7 +131,7 @@ export default function CountdownGridSection({
 
   if (
     !section.image &&
-    displayProducts.length === 0 &&
+    products.length === 0 &&
     !section.title &&
     !section.description
   ) {
@@ -210,12 +211,42 @@ export default function CountdownGridSection({
           </div>
         </div>
 
-        {displayProducts.length > 0 && (
-          <div className="mt-6 sm:mt-8 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 sm:gap-4">
-            {displayProducts.map((product: Product) => (
-              <CompactRowCard key={product.id} product={product} />
-            ))}
-          </div>
+        {products.length > 0 && (
+          <>
+            <div className="mt-6 sm:mt-8 grid grid-cols-1 gap-3 sm:hidden">
+              {mobileProducts.map((product: Product) => (
+                <CompactRowCard key={product.id} product={product} />
+              ))}
+            </div>
+
+            {hasMoreMobile && (
+              <div className="mt-4 sm:hidden text-center">
+                <Link
+                  to={viewMoreHref}
+                  className="inline-flex items-center justify-center px-4 py-2 rounded-md bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-200 text-sm font-medium hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
+                >
+                  View More
+                </Link>
+              </div>
+            )}
+
+            <div className="hidden sm:grid mt-6 sm:mt-8 grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 sm:gap-4">
+              {desktopProducts.map((product: Product) => (
+                <CompactRowCard key={product.id} product={product} />
+              ))}
+            </div>
+
+            {hasMoreDesktop && (
+              <div className="hidden sm:block mt-5 text-center">
+                <Link
+                  to={viewMoreHref}
+                  className="inline-flex items-center justify-center px-5 py-2.5 rounded-md bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-200 text-sm font-medium hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
+                >
+                  View More
+                </Link>
+              </div>
+            )}
+          </>
         )}
       </div>
     </section>

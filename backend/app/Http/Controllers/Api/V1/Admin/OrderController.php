@@ -21,6 +21,11 @@ class OrderController extends Controller
         $q = Order::with(['user', 'address', 'shippingOption', 'transaction', 'payment', 'shipment'])
             ->orderByDesc('order_date');
 
+        $vendorId = $this->resolveVendorId();
+        if ($vendorId !== null) {
+            $this->applyVendorScope($q, $vendorId);
+        }
+
         if ($request->filled('status')) {
             $q->where('status', $request->input('status'));
         }
@@ -99,6 +104,16 @@ class OrderController extends Controller
             'orderItems.variant.attributes.attribute',
             'orderItems.size',
         ])->findOrFail($id);
+
+        $vendorId = $this->resolveVendorId();
+        if ($vendorId !== null) {
+            $belongsToVendor = $order->orderItems()
+                ->whereHas('variant.product', fn ($p) => $p->where('vendor_id', $vendorId))
+                ->exists();
+            if (! $belongsToVendor) {
+                return response()->json(['message' => 'Order not found'], 404);
+            }
+        }
         
         // Ensure variant and product relationships are loaded for images
         $order->loadMissing('orderItems.variant.product.brand', 'orderItems.variant.attributes', 'orderItems.variant.attributes.attribute');
@@ -375,13 +390,22 @@ class OrderController extends Controller
         // If never viewed, show orders from last 24 hours
         $since = $lastViewed ?? now()->subHours(24);
         
-        $newOrdersCount = Order::where('created_at', '>', $since)->count();
+        $vendorId = $this->resolveVendorId();
+        $countQuery = Order::query()->where('created_at', '>', $since);
+        if ($vendorId !== null) {
+            $this->applyVendorScope($countQuery, $vendorId);
+        }
+        $newOrdersCount = $countQuery->count();
         
         // Get recent orders for preview
-        $recentOrders = Order::with(['user:id,name,email'])
+        $recentOrdersQuery = Order::with(['user:id,name,email'])
             ->where('created_at', '>', $since)
             ->orderByDesc('created_at')
-            ->limit(5)
+            ->limit(5);
+        if ($vendorId !== null) {
+            $this->applyVendorScope($recentOrdersQuery, $vendorId);
+        }
+        $recentOrders = $recentOrdersQuery
             ->get()
             ->map(fn ($o) => [
                 'id' => $o->id,
@@ -417,6 +441,23 @@ class OrderController extends Controller
         return response()->json([
             'message' => 'Notifications marked as read',
         ]);
+    }
+
+    private function resolveVendorId(): ?string
+    {
+        $user = Auth::user();
+        if (! $user) {
+            return null;
+        }
+
+        return strtoupper((string) $user->role) === 'VENDOR' ? ($user->vendor_id ?: null) : null;
+    }
+
+    private function applyVendorScope($query, string $vendorId): void
+    {
+        $query->whereHas('orderItems.variant.product', function ($p) use ($vendorId) {
+            $p->where('vendor_id', $vendorId);
+        });
     }
 
     private function listResource(Order $o): array

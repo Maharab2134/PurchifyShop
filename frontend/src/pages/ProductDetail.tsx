@@ -594,6 +594,8 @@ export default function ProductDetail() {
                 loading={false}
                 error={null}
                 showTitle={false}
+                singleLineTitle
+                widerCards
               />
             ) : (
               <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 p-8 text-center">
