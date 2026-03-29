@@ -35,6 +35,7 @@ const ApplyVendor = lazy(() => import("@/pages/ApplyVendor"));
 const Page = lazy(() => import("@/pages/Page"));
 const FAQ = lazy(() => import("@/pages/FAQ"));
 const LogoDisplay = lazy(() => import("@/pages/LogoDisplay"));
+const LandingPagePublic = lazy(() => import("@/pages/LandingPagePublic"));
 const AdminDashboard = lazy(() => import("@/pages/admin/Dashboard"));
 const AdminProducts = lazy(() => import("@/pages/admin/Products"));
 const AdminCategories = lazy(() => import("@/pages/admin/Categories"));
@@ -81,6 +82,16 @@ const AdminEmailTemplates = lazy(() => import("@/pages/admin/EmailTemplates"));
 const AdminEmailLogs = lazy(() => import("@/pages/admin/EmailLogs"));
 const AdminNotices = lazy(() => import("@/pages/admin/Notices"));
 const AdminMediaManager = lazy(() => import("@/pages/admin/MediaManager"));
+const AdminLandingPages = lazy(() => import("@/pages/admin/LandingPages"));
+const AdminLandingPageForm = lazy(
+  () => import("@/pages/admin/LandingPageForm"),
+);
+const AdminLandingPageTemplates = lazy(
+  () => import("@/pages/admin/LandingPageTemplates"),
+);
+const AdminLandingPageTemplateForm = lazy(
+  () => import("@/pages/admin/LandingPageTemplateForm"),
+);
 import PageViewTracker from "@/components/PageViewTracker";
 import PixelManager from "@/components/analytics/PixelManager";
 import SeoMeta from "@/components/seo/SeoMeta";
@@ -155,6 +166,7 @@ function AppRoutes() {
           <Route path="/faq" element={<FAQ />} />
           <Route path="/track-order" element={<TrackOrder />} />
           <Route path="/apply-vendor" element={<ApplyVendor />} />
+          <Route path="/landing.php" element={<LandingPagePublic />} />
           <Route path="/orders" element={<Orders />} />
           <Route path="/orders/:orderId" element={<OrderDetail />} />
           <Route path="/orders/:orderId/invoice" element={<Invoice />} />
@@ -205,6 +217,30 @@ function AppRoutes() {
             <Route path="pages" element={<AdminPages />} />
             <Route path="notices" element={<AdminNotices />} />
             <Route path="media-manager" element={<AdminMediaManager />} />
+            <Route
+              path="marketing/templates"
+              element={<AdminLandingPageTemplates />}
+            />
+            <Route
+              path="marketing/templates/new"
+              element={<AdminLandingPageTemplateForm />}
+            />
+            <Route
+              path="marketing/templates/:id/edit"
+              element={<AdminLandingPageTemplateForm />}
+            />
+            <Route
+              path="marketing/landing-pages"
+              element={<AdminLandingPages />}
+            />
+            <Route
+              path="marketing/landing-pages/new"
+              element={<AdminLandingPageForm />}
+            />
+            <Route
+              path="marketing/landing-pages/:id/edit"
+              element={<AdminLandingPageForm />}
+            />
             <Route path="home-sections" element={<AdminHomeSections />} />
             <Route
               path="home-sections/add"

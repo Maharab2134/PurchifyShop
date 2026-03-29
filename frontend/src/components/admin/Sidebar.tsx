@@ -30,6 +30,7 @@ import {
   Mail,
   Tag,
   Image,
+  Megaphone,
 } from "lucide-react";
 import { authApi } from "@/api/auth";
 import { logout } from "@/store/slices/authSlice";
@@ -156,6 +157,23 @@ const sections: MenuSection[] = [
       },
       { name: "Pages", href: "/dashboard/pages", icon: FileText },
       { name: "Footer", href: "/dashboard/footer", icon: Link2 },
+    ],
+    defaultOpen: false,
+  },
+  {
+    title: "Marketing",
+    icon: Megaphone,
+    links: [
+      {
+        name: "Templates",
+        href: "/dashboard/marketing/templates",
+        icon: FileText,
+      },
+      {
+        name: "Landing Pages",
+        href: "/dashboard/marketing/landing-pages",
+        icon: FileText,
+      },
     ],
     defaultOpen: false,
   },
@@ -351,10 +369,11 @@ function AdminSidebar() {
           {filteredSections.map((section) => {
             const SectionIcon = section.icon;
             const isSectionOpen = openSections[section.title];
-            const hasMultipleLinks = section.links.length > 1;
+            const shouldRenderDirectLink =
+              section.title === "Overview" && section.links.length === 1;
 
-            // If only one link, render it directly without collapsible
-            if (!hasMultipleLinks) {
+            // Keep dashboard direct; render other sections as parent groups.
+            if (shouldRenderDirectLink) {
               const link = section.links[0];
               const fullHref = prependDashboard(link.href);
               const isActive = location.pathname === fullHref;
@@ -454,7 +473,7 @@ function AdminSidebar() {
           onClick={handleSignOut}
           className={`w-full flex items-center ${isOpen ? "justify-start gap-3" : "justify-center"} px-3 py-2.5 rounded-lg bg-red-50 dark:bg-red-900/20 hover:bg-red-100 dark:hover:bg-red-900/40 transition text-red-600 dark:text-red-400`}
         >
-          <LogOut className="h-5 w-5 flex-shrink-0" />
+          <LogOut className="h-5 w-5 shrink-0" />
           {isOpen && <span className="text-sm font-medium">Sign Out</span>}
         </button>
       </div>

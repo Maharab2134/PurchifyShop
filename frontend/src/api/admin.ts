@@ -336,6 +336,40 @@ export interface AdminPage {
   updatedAt?: string;
 }
 
+export interface AdminLandingPage {
+  id: string;
+  title: string;
+  slug: string;
+  template: string;
+  templateId?: string | null;
+  templateName?: string | null;
+  productId?: string | null;
+  productName?: string | null;
+  productImage?: string | null;
+  heroHeadline?: string | null;
+  heroText?: string | null;
+  videoUrl?: string | null;
+  primaryColor: string;
+  thumbnail?: string | null;
+  viewCount: number;
+  isActive: boolean;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface AdminLandingPageTemplate {
+  id: string;
+  name: string;
+  slug: string;
+  htmlStructure?: string | null;
+  customCss?: string | null;
+  customJavascript?: string | null;
+  previewImage?: string | null;
+  isActive: boolean;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
 export interface AdminSection {
   id: string;
   type: string;
@@ -1345,6 +1379,112 @@ export const adminApi = {
       ),
     delete: (id: string) =>
       axiosInstance.delete<{ message: string }>(`${BASE}/pages/${id}`),
+  },
+
+  landingPages: {
+    list: (params?: { limit?: number; page?: number; search?: string }) =>
+      axiosInstance.get<{
+        data: {
+          landingPages: AdminLandingPage[];
+          totalResults: number;
+          totalPages: number;
+          currentPage: number;
+          resultsPerPage: number;
+        };
+      }>(`${BASE}/landing-pages`, { params }),
+    get: (id: string) =>
+      axiosInstance.get<{ data: AdminLandingPage }>(
+        `${BASE}/landing-pages/${id}`,
+      ),
+    create: (body: {
+      title: string;
+      slug?: string;
+      template?: string;
+      templateId?: string | null;
+      productId?: string | null;
+      heroHeadline?: string;
+      heroText?: string;
+      videoUrl?: string;
+      primaryColor?: string;
+      thumbnail?: string;
+      isActive?: boolean;
+    }) =>
+      axiosInstance.post<{ message: string; data: AdminLandingPage }>(
+        `${BASE}/landing-pages`,
+        body,
+      ),
+    update: (
+      id: string,
+      body: {
+        title?: string;
+        slug?: string;
+        template?: string;
+        templateId?: string | null;
+        productId?: string | null;
+        heroHeadline?: string;
+        heroText?: string;
+        videoUrl?: string;
+        primaryColor?: string;
+        thumbnail?: string;
+        isActive?: boolean;
+      },
+    ) =>
+      axiosInstance.put<{ message: string; data: AdminLandingPage }>(
+        `${BASE}/landing-pages/${id}`,
+        body,
+      ),
+    delete: (id: string) =>
+      axiosInstance.delete<{ message: string }>(`${BASE}/landing-pages/${id}`),
+  },
+
+  landingPageTemplates: {
+    list: (params?: { limit?: number; page?: number; search?: string }) =>
+      axiosInstance.get<{
+        data: {
+          templates: AdminLandingPageTemplate[];
+          totalResults: number;
+          totalPages: number;
+          currentPage: number;
+          resultsPerPage: number;
+        };
+      }>(`${BASE}/landing-page-templates`, { params }),
+    get: (id: string) =>
+      axiosInstance.get<{ data: AdminLandingPageTemplate }>(
+        `${BASE}/landing-page-templates/${id}`,
+      ),
+    create: (body: {
+      name: string;
+      slug?: string;
+      htmlStructure?: string;
+      customCss?: string;
+      customJavascript?: string;
+      previewImage?: string;
+      isActive?: boolean;
+    }) =>
+      axiosInstance.post<{ message: string; data: AdminLandingPageTemplate }>(
+        `${BASE}/landing-page-templates`,
+        body,
+      ),
+    update: (
+      id: string,
+      body: {
+        name?: string;
+        slug?: string;
+        htmlStructure?: string;
+        customCss?: string;
+        customJavascript?: string;
+        previewImage?: string;
+        isActive?: boolean;
+      },
+    ) =>
+      axiosInstance.put<{ message: string; data: AdminLandingPageTemplate }>(
+        `${BASE}/landing-page-templates/${id}`,
+        body,
+      ),
+    delete: (id: string) =>
+      axiosInstance.delete<{ message: string }>(
+        `${BASE}/landing-page-templates/${id}`,
+      ),
   },
 
   coupons: {

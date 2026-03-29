@@ -113,14 +113,14 @@ export default function SplitLayout({ section }: SplitLayoutProps) {
               <>
                 <button
                   onClick={prevImage}
-                  className="absolute left-4 top-1/2 -translate-y-1/2 bg-white/80 hover:bg-white rounded-full p-2 shadow-lg transition-colors z-10"
+                  className="absolute left-4 top-1/2 -translate-y-1/2 z-10 rounded-full p-2 bg-black/45 hover:bg-black/60 text-white ring-1 ring-white/40 backdrop-blur-sm shadow-lg transition-colors"
                   aria-label="Previous image"
                 >
                   <ChevronLeft className="w-5 h-5" />
                 </button>
                 <button
                   onClick={nextImage}
-                  className="absolute right-4 top-1/2 -translate-y-1/2 bg-white/80 hover:bg-white rounded-full p-2 shadow-lg transition-colors z-10"
+                  className="absolute right-4 top-1/2 -translate-y-1/2 z-10 rounded-full p-2 bg-black/45 hover:bg-black/60 text-white ring-1 ring-white/40 backdrop-blur-sm shadow-lg transition-colors"
                   aria-label="Next image"
                 >
                   <ChevronRight className="w-5 h-5" />
@@ -167,14 +167,14 @@ export default function SplitLayout({ section }: SplitLayoutProps) {
           <>
             <button
               onClick={prevImage}
-              className="absolute left-4 top-1/2 -translate-y-1/2 bg-white/80 hover:bg-white rounded-full p-2 shadow-lg transition-colors z-10"
+              className="absolute left-4 top-1/2 -translate-y-1/2 z-10 rounded-full p-2 bg-black/45 hover:bg-black/60 text-white ring-1 ring-white/40 backdrop-blur-sm shadow-lg transition-colors"
               aria-label="Previous image"
             >
               <ChevronLeft className="w-5 h-5" />
             </button>
             <button
               onClick={nextImage}
-              className="absolute right-4 top-1/2 -translate-y-1/2 bg-white/80 hover:bg-white rounded-full p-2 shadow-lg transition-colors z-10"
+              className="absolute right-4 top-1/2 -translate-y-1/2 z-10 rounded-full p-2 bg-black/45 hover:bg-black/60 text-white ring-1 ring-white/40 backdrop-blur-sm shadow-lg transition-colors"
               aria-label="Next image"
             >
               <ChevronRight className="w-5 h-5" />
@@ -189,26 +189,26 @@ export default function SplitLayout({ section }: SplitLayoutProps) {
     <div
       className={imageOnRight ? "lg:col-span-2 lg:order-1" : "lg:col-span-2"}
     >
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-5">
-        <div>
+      <div className="mb-5">
+        <div className="flex items-start justify-between gap-3">
           {section.title && (
-            <h2 className="text-2xl sm:text-3xl font-bold mb-2">
+            <h2 className="text-2xl sm:text-3xl font-bold leading-tight">
               {section.title}
             </h2>
           )}
-          {section.description && (
-            <p className="text-gray-600 dark:text-gray-400">
-              {section.description}
-            </p>
+          {section.slug && (
+            <Link
+              to={`/section/${section.slug}`}
+              className="shrink-0 whitespace-nowrap text-slate-600 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300 hover:underline font-medium text-sm sm:text-base"
+            >
+              View All &gt;
+            </Link>
           )}
         </div>
-        {section.slug && (
-          <Link
-            to={`/section/${section.slug}`}
-            className="text-slate-600 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300 hover:underline font-medium text-sm sm:text-base"
-          >
-            View All &gt;
-          </Link>
+        {section.description && (
+          <p className="mt-2 text-gray-600 dark:text-gray-400">
+            {section.description}
+          </p>
         )}
       </div>
 
@@ -226,12 +226,12 @@ export default function SplitLayout({ section }: SplitLayoutProps) {
           {products.map((product: Product) => (
             <div
               key={product.id}
-              className="flex-shrink-0 w-[calc(50%-0.375rem)] sm:w-[calc(50%-0.5rem)] lg:w-[calc(25%-0.75rem)] snap-start"
+              className="flex-shrink-0 w-[calc(56%-0.45rem)] sm:w-[calc(50%-0.5rem)] lg:w-[calc(25%-0.75rem)] snap-start"
             >
               <ProductCard
                 product={product}
                 compact
-                imageAspectClass="aspect-[4/3]"
+                imageAspectClass="aspect-[3/2]"
                 singleLineTitle
               />
             </div>

@@ -1,76 +1,88 @@
-import { useState, useEffect } from 'react'
-import { Link } from 'react-router-dom'
-import { motion, AnimatePresence } from 'framer-motion'
-import { ChevronLeft, ChevronRight, Play, ShoppingBag, Star } from 'lucide-react'
+import { useState, useEffect } from "react";
+import { Link } from "react-router-dom";
+import { motion, AnimatePresence } from "framer-motion";
+import {
+  ChevronLeft,
+  ChevronRight,
+  Play,
+  ShoppingBag,
+  Star,
+} from "lucide-react";
 
 interface HeroSectionProps {
-  isPreview?: boolean
+  isPreview?: boolean;
 }
 
 const sliderData = [
   {
-    image: '/assets/images/laptop-slider.jpg',
-    title: 'Discover Amazing Deals',
-    subtitle: 'Up to 70% off on selected items',
-    ctaText: 'Shop Now',
-    ctaLink: '/shop',
-    badge: 'New Arrivals',
+    image: "/assets/images/laptop-slider.jpg",
+    title: "Discover Amazing Deals",
+    subtitle: "Up to 70% off on selected items",
+    ctaText: "Shop Now",
+    ctaLink: "/shop",
+    badge: "New Arrivals",
   },
   {
-    image: '/assets/images/furniture-slider.jpeg',
-    title: 'Premium Quality Products',
-    subtitle: 'Handpicked items for your lifestyle',
-    ctaText: 'Explore',
-    ctaLink: '/shop',
-    badge: 'Featured',
+    image: "/assets/images/furniture-slider.jpeg",
+    title: "Premium Quality Products",
+    subtitle: "Handpicked items for your lifestyle",
+    ctaText: "Explore",
+    ctaLink: "/shop",
+    badge: "Featured",
   },
   {
-    image: '/assets/images/shirt-slider.jpg',
-    title: 'Fast & Free Shipping',
-    subtitle: 'On orders over $50',
-    ctaText: 'Learn More',
-    ctaLink: '/shop',
-    badge: 'Limited Time',
+    image: "/assets/images/shirt-slider.jpg",
+    title: "Fast & Free Shipping",
+    subtitle: "On orders over $50",
+    ctaText: "Learn More",
+    ctaLink: "/shop",
+    badge: "Limited Time",
   },
   {
-    image: '/assets/images/shoes-slider.jpeg',
-    title: 'Fast & Free Shipping',
-    subtitle: 'On orders over $50',
-    ctaText: 'Learn More',
-    ctaLink: '/shop',
-    badge: 'Limited Time',
+    image: "/assets/images/shoes-slider.jpeg",
+    title: "Fast & Free Shipping",
+    subtitle: "On orders over $50",
+    ctaText: "Learn More",
+    ctaLink: "/shop",
+    badge: "Limited Time",
   },
-]
+];
 
 export default function HeroSection({ isPreview = false }: HeroSectionProps) {
-  const [currentImageIndex, setCurrentImageIndex] = useState(0)
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
 
   useEffect(() => {
     if (!isPreview) {
       const interval = setInterval(() => {
-        setCurrentImageIndex((prev) => (prev === sliderData.length - 1 ? 0 : prev + 1))
-      }, 6000)
-      return () => clearInterval(interval)
+        setCurrentImageIndex((prev) =>
+          prev === sliderData.length - 1 ? 0 : prev + 1,
+        );
+      }, 6000);
+      return () => clearInterval(interval);
     }
-  }, [isPreview])
+  }, [isPreview]);
 
   const nextSlide = () => {
-    setCurrentImageIndex((prev) => (prev === sliderData.length - 1 ? 0 : prev + 1))
-  }
+    setCurrentImageIndex((prev) =>
+      prev === sliderData.length - 1 ? 0 : prev + 1,
+    );
+  };
 
   const prevSlide = () => {
-    setCurrentImageIndex((prev) => (prev === 0 ? sliderData.length - 1 : prev - 1))
-  }
+    setCurrentImageIndex((prev) =>
+      prev === 0 ? sliderData.length - 1 : prev - 1,
+    );
+  };
 
   const goToSlide = (index: number) => {
-    setCurrentImageIndex(index)
-  }
+    setCurrentImageIndex(index);
+  };
 
-  const currentSlide = sliderData[currentImageIndex]
+  const currentSlide = sliderData[currentImageIndex];
 
   return (
     <section
-      className={`relative w-full ${isPreview ? 'scale-90 my-2' : 'my-2 sm:my-4 lg:my-6'}`}
+      className={`relative w-full ${isPreview ? "scale-90 my-2" : "my-2 sm:my-4 lg:my-6"}`}
     >
       <div className="relative w-full overflow-hidden rounded-2xl shadow-2xl">
         <div className="relative w-full">
@@ -80,8 +92,14 @@ export default function HeroSection({ isPreview = false }: HeroSectionProps) {
                 key={currentImageIndex}
                 initial={{ opacity: 0, scale: 1.1, x: 100, y: 100, rotate: 10 }}
                 animate={{ opacity: 1, scale: 1, x: 0, y: 0, rotate: 0 }}
-                exit={{ opacity: 0, scale: 0.95, x: -100, y: -100, rotate: -10 }}
-                transition={{ duration: 0.6, ease: 'easeInOut' }}
+                exit={{
+                  opacity: 0,
+                  scale: 0.95,
+                  x: -100,
+                  y: -100,
+                  rotate: -10,
+                }}
+                transition={{ duration: 0.6, ease: "easeInOut" }}
                 className="absolute inset-0 w-full h-full"
               >
                 <img
@@ -101,7 +119,9 @@ export default function HeroSection({ isPreview = false }: HeroSectionProps) {
                         className="inline-flex items-center gap-1.5 sm:gap-2 bg-white/20 backdrop-blur-sm text-white px-3 sm:px-4 py-1.5 sm:py-2 rounded-full mb-4 sm:mb-6 border border-white/30"
                       >
                         <Star size={16} className="text-yellow-400" />
-                        <span className="text-xs sm:text-sm font-medium">{currentSlide.badge}</span>
+                        <span className="text-xs sm:text-sm font-medium">
+                          {currentSlide.badge}
+                        </span>
                       </motion.div>
 
                       <motion.h1
@@ -159,18 +179,27 @@ export default function HeroSection({ isPreview = false }: HeroSectionProps) {
           <ChevronRight size={20} className="sm:w-6 sm:h-6" />
         </button>
 
-        <div className="absolute bottom-4 sm:bottom-6 left-1/2 -translate-x-1/2 flex gap-1.5 sm:gap-2">
+        <div className="absolute bottom-4 sm:bottom-6 left-1/2 -translate-x-1/2 flex items-center gap-2 rounded-full bg-white/15 backdrop-blur-md px-2 py-1.5">
           {sliderData.map((_, index) => (
             <button
               key={index}
               onClick={() => goToSlide(index)}
-              className={`w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full transition-all duration-300 ${
+              className={`relative overflow-hidden rounded-full transition-all duration-500 ease-out ${
                 index === currentImageIndex
-                  ? 'bg-white scale-125'
-                  : 'bg-white/50 hover:bg-white/75'
+                  ? "w-9 sm:w-10 h-2.5 sm:h-3 bg-white/35 shadow-[0_0_0_1px_rgba(255,255,255,0.35)]"
+                  : "w-2.5 sm:w-3 h-2.5 sm:h-3 bg-white/35 hover:bg-white/50"
               }`}
+              aria-current={index === currentImageIndex}
               aria-label={`Go to slide ${index + 1}`}
-            />
+            >
+              <span
+                className={`absolute inset-y-0.5 left-0.5 rounded-full bg-white transition-all duration-500 ease-out ${
+                  index === currentImageIndex
+                    ? "w-[calc(100%-4px)] opacity-100"
+                    : "w-0 opacity-0"
+                }`}
+              />
+            </button>
           ))}
         </div>
 
@@ -182,5 +211,5 @@ export default function HeroSection({ isPreview = false }: HeroSectionProps) {
         </button>
       </div>
     </section>
-  )
+  );
 }

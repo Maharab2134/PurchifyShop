@@ -162,16 +162,27 @@ export default function HomeSlider({
 
         {/* Progress Indicators (Desktop only) */}
         {showProgress && sliders.length > 1 && (
-          <div className="absolute bottom-4 left-1/2 -translate-x-1/2 hidden md:flex items-center gap-2 z-10">
+          <div className="absolute bottom-4 left-1/2 -translate-x-1/2 hidden md:flex items-center gap-2 z-10 rounded-full bg-black/20 backdrop-blur-md px-2 py-1.5">
             {sliders.map((_, i) => (
               <button
                 key={i}
                 onClick={() => setIndex(i)}
-                className={`rounded-full transition-all duration-300 ${
-                  i === index ? "w-6 h-1.5 bg-white" : "w-2 h-2 bg-white/50"
+                className={`relative overflow-hidden rounded-full transition-all duration-500 ease-out ${
+                  i === index
+                    ? "w-9 h-2.5 bg-white/35 shadow-[0_0_0_1px_rgba(255,255,255,0.35)]"
+                    : "w-2.5 h-2.5 bg-white/40 hover:bg-white/55"
                 }`}
+                aria-current={i === index}
                 aria-label={`Go to slide ${i + 1}`}
-              />
+              >
+                <span
+                  className={`absolute inset-y-0.5 left-0.5 rounded-full bg-white transition-all duration-500 ease-out ${
+                    i === index
+                      ? "w-[calc(100%-4px)] opacity-100"
+                      : "w-0 opacity-0"
+                  }`}
+                />
+              </button>
             ))}
           </div>
         )}

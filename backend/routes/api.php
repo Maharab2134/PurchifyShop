@@ -41,6 +41,8 @@ Route::prefix('v1')->group(function () {
     Route::get('/footer', [\App\Http\Controllers\Api\V1\FooterController::class, 'index'])->name('api.footer.index');
     Route::get('/pages', [\App\Http\Controllers\Api\V1\PageController::class, 'index'])->name('api.pages.index');
     Route::get('/pages/slug/{slug}', [\App\Http\Controllers\Api\V1\PageController::class, 'showBySlug'])->name('api.pages.slug');
+    Route::get('/landing-pages', [\App\Http\Controllers\Api\V1\LandingPageController::class, 'index'])->name('api.landing-pages.index');
+    Route::get('/landing-pages/slug/{slug}', [\App\Http\Controllers\Api\V1\LandingPageController::class, 'showBySlug'])->name('api.landing-pages.slug');
     Route::get('/payment-methods', [\App\Http\Controllers\Api\V1\PaymentMethodController::class, 'index'])->name('api.payment-methods.index');
     Route::get('/shipping-options', [\App\Http\Controllers\Api\V1\ShippingOptionController::class, 'index'])->name('api.shipping-options.index');
 
@@ -234,6 +236,8 @@ Route::prefix('v1')->group(function () {
         Route::get('email-logs/{id}', [\App\Http\Controllers\Api\V1\Admin\EmailLogController::class, 'show'])->name('email-logs.show');
         Route::delete('email-logs/{id}', [\App\Http\Controllers\Api\V1\Admin\EmailLogController::class, 'destroy'])->name('email-logs.destroy');
         Route::apiResource('pages', \App\Http\Controllers\Api\V1\Admin\PageController::class);
+        Route::apiResource('landing-page-templates', \App\Http\Controllers\Api\V1\Admin\LandingPageTemplateController::class);
+        Route::apiResource('landing-pages', \App\Http\Controllers\Api\V1\Admin\LandingPageController::class);
         Route::get('chats', [\App\Http\Controllers\Api\V1\Admin\ChatController::class, 'index'])->name('chats.index');
         Route::get('chats/{id}', [\App\Http\Controllers\Api\V1\Admin\ChatController::class, 'show'])->name('chats.show');
         Route::post('chats/{id}/messages', [\App\Http\Controllers\Api\V1\Admin\ChatController::class, 'sendMessage'])->name('chats.send-message');

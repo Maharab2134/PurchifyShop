@@ -44,6 +44,37 @@
   --app-accent: #4f46e5;
   --app-accent-hover: #4338ca;
 }
+/* Responsive Utilities */
+@layer utilities {
+  /* Hide on extra small screens */
+  .xs\:inline {
+    @media (min-width: 480px) {
+      display: inline;
+    }
+  }
+  
+  .xs\:hidden {
+    @media (max-width: 479px) {
+      display: none;
+    }
+  }
+  
+  /* Custom breakpoints */
+  @media (min-width: 480px) {
+    .xs\:block {
+      display: block;
+    }
+    .xs\:flex {
+      display: flex;
+    }
+    .xs\:inline {
+      display: inline;
+    }
+    .xs\:hidden {
+      display: none;
+    }
+  }
+}
 
 .dark {
   --app-shadow-soft: 0 2px 8px rgba(0, 0, 0, 0.2);

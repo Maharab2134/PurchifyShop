@@ -197,6 +197,17 @@ export default function ProductCard({
     navigate(`/product/${product.slug}`);
   };
 
+  const displayTitle =
+    product.name.length > 30
+      ? `${product.name.slice(0, 30).trimEnd()}...`
+      : product.name;
+
+  const titleClampClass = compact
+    ? "line-clamp-2 md:line-clamp-1"
+    : singleLineTitle
+      ? "line-clamp-1"
+      : "line-clamp-1 md:line-clamp-2";
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -206,13 +217,17 @@ export default function ProductCard({
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
       onClick={goToProductDetails}
-      className={`group bg-white dark:bg-gray-900 rounded-2xl overflow-hidden relative h-full flex flex-col
-        border border-gray-100 dark:border-gray-800 hover:border-pink-200 dark:hover:border-pink-900
-        hover:shadow-2xl hover:shadow-pink-500/10 dark:hover:shadow-pink-500/5
-        transition-all duration-500 ease-out cursor-pointer ${compact ? "rounded-xl" : ""}`}
+      className={`group relative h-full flex flex-col overflow-hidden
+        rounded-2xl ${compact ? "" : "md:rounded-3xl"}
+        bg-white/95 dark:bg-slate-900/95 backdrop-blur-sm
+        border border-slate-200/80 dark:border-slate-700/70 ring-1 ring-white/60 dark:ring-white/5
+        shadow-[0_12px_30px_rgba(15,23,42,0.12)] dark:shadow-[0_12px_34px_rgba(2,6,23,0.45)]
+        hover:border-pink-300/70 dark:hover:border-pink-500/40
+        hover:shadow-[0_18px_45px_rgba(236,72,153,0.16)] dark:hover:shadow-[0_20px_50px_rgba(236,72,153,0.18)]
+        transition-all duration-500 ease-out cursor-pointer`}
     >
       {/* Top Badges */}
-      <div className="absolute top-3 left-3 right-3 z-20 flex justify-between items-start">
+      <div className="absolute top-2.5 sm:top-3 left-2.5 sm:left-3 right-2.5 sm:right-3 z-20 flex justify-between items-start">
         {/* Discount Badge */}
         {hasDiscount && (
           <motion.div
@@ -239,13 +254,13 @@ export default function ProductCard({
 
       {/* Image Area */}
       <div
-        className={`relative w-full bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 
-          flex items-center justify-center overflow-hidden ${imageAspectClass || "aspect-square"} p-4`}
+        className={`relative w-full bg-gradient-to-br from-slate-100 via-white to-slate-100 dark:from-slate-900 dark:via-slate-900 dark:to-slate-800
+          flex items-center justify-center overflow-hidden ${imageAspectClass || "aspect-square"} p-2.5 sm:p-3.5 md:p-4`}
       >
         {/* Image Container */}
         <Link
           to={`/product/${product.slug}`}
-          className="block w-full h-full relative"
+          className="block w-full h-full relative rounded-xl sm:rounded-2xl overflow-hidden bg-white/70 dark:bg-slate-800/70 ring-1 ring-slate-200/70 dark:ring-slate-700/60"
           onClick={(e) => e.stopPropagation()}
         >
           <div className="relative w-full h-full">
@@ -334,8 +349,8 @@ export default function ProductCard({
           disabled={wishlistLoading}
           whileHover={{ scale: 1.1 }}
           whileTap={{ scale: 0.9 }}
-          className={`absolute top-3 right-3 z-20 rounded-full backdrop-blur-sm flex items-center justify-center transition-all duration-300
-            ${compact ? "w-10 h-10" : "w-12 h-12"} 
+          className={`absolute top-2.5 sm:top-3 right-2.5 sm:right-3 z-20 rounded-full backdrop-blur-sm flex items-center justify-center transition-all duration-300
+            ${compact ? "w-10 h-10" : "w-9 h-9 sm:w-10 sm:h-10"} 
             ${
               inWishlist
                 ? "bg-gradient-to-br from-pink-500 to-rose-500 text-white shadow-lg"
@@ -354,7 +369,7 @@ export default function ProductCard({
           <motion.div
             initial={{ opacity: 0, scale: 0.8 }}
             animate={{ opacity: 1, scale: 1 }}
-            className="absolute bottom-3 left-3 bg-white/90 backdrop-blur-sm rounded-lg p-2 shadow-lg"
+            className="absolute bottom-2.5 sm:bottom-3 left-2.5 sm:left-3 bg-white/90 backdrop-blur-sm rounded-lg p-1.5 sm:p-2 shadow-lg"
           >
             <img
               src={logoUrl}
@@ -371,25 +386,30 @@ export default function ProductCard({
 
       {/* Product Info — min-w-0 so text stays inside card and truncates */}
       <div
-        className={`flex flex-col flex-grow min-w-0 overflow-hidden ${compact ? "p-3" : "p-5"}`}
+        className={`flex flex-col flex-grow min-w-0 overflow-hidden ${compact ? "p-1.5" : "p-3 sm:p-4 md:p-5"}`}
       >
-        <div className="block flex-grow space-y-2 min-w-0">
-          {/* Category and Brand */}
-          <div className="hidden md:flex items-center justify-between gap-2 mb-1 min-w-0">
+        <div className="block flex-grow space-y-0.5 md:space-y-2 min-w-0">
+          {/* Category and  */}
+          <div className="hidden md:flex items-center justify-between gap-2 mb-2 min-w-0">
             {product.category && (
               <Link
                 to={`/shop?categoryId=${product.category.id}`}
                 onClick={(e) => e.stopPropagation()}
-                className="inline-flex items-center text-[11px] font-semibold text-gray-600 dark:text-gray-300 
-                bg-gray-100 dark:bg-gray-800 px-2.5 py-1 rounded-md truncate max-w-full
-                hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
+                className="inline-flex items-center text-[10px] sm:text-xs font-medium
+text-gray-700 dark:text-gray-300
+bg-gray-100/80 dark:bg-gray-800/80
+backdrop-blur-sm
+px-2.5 sm:px-3 py-1 sm:py-1.5
+rounded-full
+border border-gray-200 dark:border-gray-700
+shadow-sm"
               >
                 <span className="truncate block">{product.category.name}</span>
               </Link>
             )}
 
             {product.brand && (
-              <span className="text-xs text-gray-500 dark:text-gray-400 font-medium truncate shrink-0">
+              <span className="hidden md:inline text-xs text-gray-500 dark:text-gray-400 font-medium truncate shrink-0">
                 {product.brand.name}
               </span>
             )}
@@ -402,17 +422,17 @@ export default function ProductCard({
             className="block group/title min-w-0"
           >
             <h3
-              className={`font-semibold text-gray-900 dark:text-gray-100 ${singleLineTitle ? "line-clamp-1" : "line-clamp-1 md:line-clamp-2"} leading-tight break-words overflow-hidden
+              className={`font-semibold text-gray-900 dark:text-gray-100 ${titleClampClass} leading-tight wrap-break-word overflow-hidden
                 group-hover/title:text-pink-600 dark:group-hover/title:text-pink-400 transition-colors
-                ${compact ? "text-base mb-2" : "text-lg mb-3"}`}
+                ${compact ? "text-base mb-0.5" : "text-[15px] sm:text-base md:text-lg mb-1 md:mb-2"}`}
             >
-              {product.name}
+              {displayTitle}
             </h3>
           </Link>
 
           {/* Rating with Stars */}
-          <div className="flex items-center gap-2 min-w-0 flex-wrap">
-            <div className="flex items-center gap-1 bg-gradient-to-r from-amber-500 to-orange-500 text-white px-2 py-1 rounded-full shrink-0">
+          <div className="flex items-center gap-1.5 min-w-0 flex-wrap md:mt-1">
+            <div className="flex items-center gap-1 bg-linear-to-r from-amber-500 to-orange-500 text-white px-2 py-1 rounded-full shrink-0 shadow-sm">
               <Star size={12} fill="currentColor" />
               <span className="text-xs font-bold">
                 {product.averageRating?.toFixed(1) || "0.0"}
@@ -430,7 +450,7 @@ export default function ProductCard({
           </div>
 
           {/* Pricing — price and saving stay in one line, no overflow */}
-          <div className="mt-3 min-w-0">
+          <div className="mt-1 md:mt-3.5 min-w-0">
             <div className="flex flex-wrap items-baseline gap-x-2 gap-y-1 min-w-0">
               <span
                 className={`font-bold text-gray-900 dark:text-gray-100 shrink-0 ${
@@ -441,13 +461,13 @@ export default function ProductCard({
               </span>
               {hasDiscount && (
                 <>
-                  <span className="hidden md:inline text-sm text-gray-500 dark:text-gray-400 line-through shrink-0">
+                  <span className="inline text-xs sm:text-sm text-gray-500 dark:text-gray-400 line-through shrink-0">
                     ৳{originalPrice.toFixed(0)}
                   </span>
                   <motion.span
                     initial={{ scale: 0 }}
                     animate={{ scale: 1 }}
-                    className="hidden md:inline-block shrink-0 whitespace-nowrap text-xs font-bold text-green-600 dark:text-green-400 bg-green-50 dark:bg-green-900/20 px-2 py-0.5 rounded-full"
+                    className="inline-block shrink-0 whitespace-nowrap text-[10px] sm:text-xs font-bold text-green-600 dark:text-green-400 bg-green-50 dark:bg-green-900/20 px-1.5 sm:px-2 py-0.5 rounded-full"
                   >
                     Save ৳{(originalPrice - discountedPrice).toFixed(0)}
                   </motion.span>
@@ -475,13 +495,15 @@ export default function ProductCard({
         </div>
 
         {/* Action Buttons */}
-        <div className="flex gap-2 mt-4">
+        <div className="flex gap-2 mt-2.5 md:mt-5">
           <motion.button
             onClick={handleAddToCart}
             disabled={isOutOfStock || addingToCart || !firstVariant}
-            className="flex-1 whitespace-nowrap bg-gradient-to-r from-pink-500 to-rose-500
-      text-white rounded-xl font-semibold py-2.5 sm:py-3 text-sm sm:text-base
-      flex items-center justify-center gap-2 shadow-lg"
+            className="flex-1 whitespace-nowrap bg-gradient-to-r from-pink-500 via-rose-500 to-fuchsia-500
+      text-white rounded-xl md:rounded-2xl font-semibold py-2 md:py-3 text-xs sm:text-sm md:text-base
+      flex items-center justify-center gap-2 shadow-[0_8px_20px_rgba(236,72,153,0.35)]
+      hover:shadow-[0_12px_28px_rgba(236,72,153,0.45)] active:scale-[0.99]
+      disabled:opacity-60 disabled:cursor-not-allowed transition-all duration-300"
           >
             {addingToCart ? (
               <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
