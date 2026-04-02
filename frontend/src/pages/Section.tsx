@@ -1,10 +1,10 @@
-import { useEffect, useState } from 'react'
-import { useParams, Link } from 'react-router-dom'
-import { ChevronLeft, Package } from 'lucide-react'
-import MainLayout from '@/components/templates/MainLayout'
-import ProductCard from '@/components/product/ProductCard'
-import { homeSectionsApi, type HomeSection } from '@/api/homeSections'
-import type { Product } from '@/api/products'
+import { useEffect, useState } from "react";
+import { useParams, Link } from "react-router-dom";
+import { ChevronLeft, Package } from "lucide-react";
+import MainLayout from "@/components/templates/MainLayout";
+import ProductCard from "@/components/product/ProductCard";
+import { homeSectionsApi, type HomeSection } from "@/api/homeSections";
+import type { Product } from "@/api/products";
 
 /**
  * Section page: View More for admin-created Home Sections only.
@@ -12,43 +12,45 @@ import type { Product } from '@/api/products'
  * Resolves section by slug from Home Sections API. No dummy data or text.
  */
 export default function Section() {
-  const { slug } = useParams<{ slug: string }>()
-  const [section, setSection] = useState<HomeSection | null>(null)
-  const [products, setProducts] = useState<Product[]>([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
+  const { slug } = useParams<{ slug: string }>();
+  const [section, setSection] = useState<HomeSection | null>(null);
+  const [products, setProducts] = useState<Product[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!slug) {
-      setLoading(false)
-      setError('Section not found')
-      return
+      setLoading(false);
+      setError("Section not found");
+      return;
     }
 
-    setLoading(true)
-    setError(null)
+    setLoading(true);
+    setError(null);
     homeSectionsApi
       .getBySlug(slug)
       .then((s) => {
         if (s) {
-          setSection(s)
-          setProducts(s.products ?? [])
+          setSection(s);
+          setProducts(s.products ?? []);
         } else {
-          setSection(null)
-          setProducts([])
-          setError('Section not found')
+          setSection(null);
+          setProducts([]);
+          setError("Section not found");
         }
       })
       .catch((e) => {
-        const msg = (e as { response?: { data?: { message?: string } } })?.response?.data?.message ?? 'Failed to load section'
-        setError(msg)
-        setSection(null)
-        setProducts([])
+        const msg =
+          (e as { response?: { data?: { message?: string } } })?.response?.data
+            ?.message ?? "Failed to load section";
+        setError(msg);
+        setSection(null);
+        setProducts([]);
       })
-      .finally(() => setLoading(false))
-  }, [slug])
+      .finally(() => setLoading(false));
+  }, [slug]);
 
-  const title = section?.name ?? slug ?? ''
+  const title = section?.name ?? slug ?? "";
 
   return (
     <MainLayout>
@@ -75,7 +77,9 @@ export default function Section() {
             <div className="w-16 h-16 bg-red-100 dark:bg-red-900/30 rounded-full flex items-center justify-center mx-auto mb-4">
               <Package className="w-8 h-8 text-red-500 dark:text-red-400" />
             </div>
-            <p className="text-red-600 dark:text-red-400 font-medium">{error}</p>
+            <p className="text-red-600 dark:text-red-400 font-medium">
+              {error}
+            </p>
             <Link
               to="/"
               className="inline-block mt-4 text-indigo-600 dark:text-indigo-400 hover:underline font-medium"
@@ -108,5 +112,5 @@ export default function Section() {
         )}
       </div>
     </MainLayout>
-  )
+  );
 }

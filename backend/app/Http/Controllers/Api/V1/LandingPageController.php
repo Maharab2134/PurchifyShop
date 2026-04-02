@@ -32,7 +32,7 @@ class LandingPageController extends Controller
     public function showBySlug(string $slug): JsonResponse
     {
         $page = LandingPage::query()
-            ->with(['product:id,name,slug,images', 'templateModel:id,name,html_structure,custom_css,custom_javascript'])
+            ->with(['product', 'templateModel:id,name,html_structure,custom_css,custom_javascript'])
             ->where('slug', $slug)
             ->where('is_active', true)
             ->first();
@@ -42,7 +42,7 @@ class LandingPageController extends Controller
         }
 
         $page->increment('view_count');
-        $page->refresh()->load(['product:id,name,slug,images', 'templateModel:id,name,html_structure,custom_css,custom_javascript']);
+        $page->refresh()->load(['product', 'templateModel:id,name,html_structure,custom_css,custom_javascript']);
 
         return response()->json([
             'data' => [
@@ -53,6 +53,21 @@ class LandingPageController extends Controller
 
     private function resource(LandingPage $page): array
     {
+        $product = $page->product;
+        
+        // Get pricing - from base_price or first variant
+        $originalPrice = (float) ($product->base_price ?? 0);
+        $discountedPrice = $originalPrice;
+        
+        // If no base_price, try to get from first variant
+        if ($originalPrice === 0 && $product->variants && $product->variants->count() > 0) {
+            $firstVariant = $product->variants->first();
+            $originalPrice = (float) ($firstVariant->original_price ?? $firstVariant->price ?? 0);
+            $discountedPrice = (float) ($firstVariant->price ?? 0);
+        } else {
+            $discountedPrice = $product->discountedPrice();
+        }
+
         return [
             'id' => $page->id,
             'title' => $page->title,
@@ -64,11 +79,19 @@ class LandingPageController extends Controller
             'templateCss' => $page->templateModel?->custom_css,
             'templateJs' => $page->templateModel?->custom_javascript,
             'productId' => $page->product_id,
-            'product' => $page->product ? [
-                'id' => $page->product->id,
-                'name' => $page->product->name,
-                'slug' => $page->product->slug,
-                'images' => $page->product->images,
+            'product' => $product ? [
+                'id' => $product->id,
+                'name' => $product->name,
+                'slug' => $product->slug,
+                'description' => $product->short_description ?? $product->description,
+                'images' => $product->images ?? [],
+                'price' => $discountedPrice,
+                'originalPrice' => $originalPrice,
+                'isDiscountActive' => $product->isDiscountActive(),
+                'discountBadge' => $product->discountBadge(),
+                'rating' => $product->average_rating ?? 0,
+                'reviewCount' => $product->review_count ?? 0,
+                'isOutOfStock' => $product->isOutOfStock(),
             ] : null,
             'heroHeadline' => $page->hero_headline,
             'heroText' => $page->hero_text,

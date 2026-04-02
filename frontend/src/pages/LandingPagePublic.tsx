@@ -105,6 +105,8 @@ export default function LandingPagePublic() {
       primaryColor: page.primaryColor || "",
       thumbnail: page.thumbnail || "",
       product: page.product || null,
+      apiBase: "/api/v1",
+      baseUrl: import.meta.env.VITE_IMAGE_BASE_URL || "http://localhost:8000",
     };
 
     return `<!doctype html>

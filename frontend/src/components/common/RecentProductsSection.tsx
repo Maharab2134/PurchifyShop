@@ -1,47 +1,47 @@
-import { useEffect, useState } from 'react'
-import { motion } from 'framer-motion'
-import ProductCard from '@/components/product/ProductCard'
-import { productsApi, type Product } from '@/api/products'
-import { getRecentProducts } from '@/utils/recentProducts'
+import { useEffect, useState } from "react";
+import { motion } from "framer-motion";
+import ProductCard from "@/components/product/ProductCard";
+import { productsApi, type Product } from "@/api/products";
+import { getRecentProducts } from "@/utils/recentProducts";
 
 export default function RecentProductsSection() {
-  const [recentProducts, setRecentProducts] = useState<Product[]>([])
-  const [loading, setLoading] = useState(true)
+  const [recentProducts, setRecentProducts] = useState<Product[]>([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const loadRecentProducts = async () => {
       try {
-        const recent = getRecentProducts()
-        
+        const recent = getRecentProducts();
+
         if (recent.length === 0) {
-          setLoading(false)
-          return
+          setLoading(false);
+          return;
         }
 
         // Fetch product details for recent product IDs
         const productPromises = recent.map((p) =>
-          productsApi.getById(p.id).catch(() => null)
-        )
-        
-        const results = await Promise.all(productPromises)
+          productsApi.getById(p.id).catch(() => null),
+        );
+
+        const results = await Promise.all(productPromises);
         const products = results
           .filter((r) => r !== null)
           .map((r) => r!.data.data)
-          .filter((p) => p) // Products API only returns active products
-        
-        setRecentProducts(products)
-      } catch (error) {
-        console.error('Failed to load recent products:', error)
-      } finally {
-        setLoading(false)
-      }
-    }
+          .filter((p) => p); // Products API only returns active products
 
-    loadRecentProducts()
-  }, [])
+        setRecentProducts(products);
+      } catch (error) {
+        console.error("Failed to load recent products:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadRecentProducts();
+  }, []);
 
   if (loading || recentProducts.length === 0) {
-    return null
+    return null;
   }
 
   return (
@@ -75,5 +75,5 @@ export default function RecentProductsSection() {
         </div>
       </div>
     </section>
-  )
+  );
 }
