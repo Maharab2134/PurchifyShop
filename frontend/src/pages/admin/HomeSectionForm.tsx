@@ -894,27 +894,45 @@ export default function HomeSectionForm() {
             {form.watch("themeType") !== "IMAGE_BANNER" &&
               form.watch("themeType") !== "FEATURES_GRID" && (
                 <div className="rounded-lg border border-gray-200 dark:border-gray-700 p-4 bg-gray-50 dark:bg-gray-700/30">
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
                     Products ({selectedIds.size} selected)
                   </label>
+                  {form.watch("image") && (
+                    <div className="mb-4">
+                      <img
+                        src={getImageUrl(form.watch("image"))}
+                        alt="Section preview"
+                        className="w-24 h-24 object-cover rounded-lg border border-gray-200 dark:border-gray-600"
+                      />
+                    </div>
+                  )}
                   <div className="max-h-64 overflow-y-auto rounded-lg border border-gray-200 dark:border-gray-700 divide-y divide-gray-200 dark:divide-gray-700 bg-white dark:bg-gray-800">
                     {allProducts.map((p) => (
                       <label
                         key={p.id}
-                        className="flex items-center gap-3 px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-700/30 cursor-pointer"
+                        className="flex items-center gap-3 px-3 py-2 hover:bg-gray-50 dark:hover:bg-gray-700/30 cursor-pointer"
                       >
                         <input
                           type="checkbox"
                           checked={selectedIds.has(p.id)}
                           onChange={() => toggleProduct(p.id)}
-                          className="rounded border-gray-300 dark:border-gray-600 text-indigo-600"
+                          className="rounded border-gray-300 dark:border-gray-600 text-indigo-600 flex-shrink-0"
                         />
-                        <span className="font-medium text-gray-900 dark:text-gray-100 truncate">
-                          {p.name}
-                        </span>
-                        <span className="text-xs text-gray-500 dark:text-gray-400 truncate">
-                          {p.slug}
-                        </span>
+                        {p.images && p.images[0] && (
+                          <img
+                            src={getImageUrl(p.images[0])}
+                            alt={p.name}
+                            className="w-10 h-10 object-cover rounded border border-gray-200 dark:border-gray-600 flex-shrink-0"
+                          />
+                        )}
+                        <div className="flex-1 min-w-0">
+                          <p className="font-medium text-gray-900 dark:text-gray-100 truncate text-sm">
+                            {p.name}
+                          </p>
+                          <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
+                            {p.slug}
+                          </p>
+                        </div>
                       </label>
                     ))}
                   </div>
